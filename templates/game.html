@@ -2,65 +2,41 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="/images/ink.ico">
     <title>Ink Paint</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/ink.ico') }}">
+
     <style>
-        body { margin: 0; overflow: hidden; background: #f0f0f0; font-family: sans-serif; }
-        #ui { position: fixed; top: 20px; left: 20px; z-index: 10; background: rgba(255,255,255,0.8); padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        canvas { display: block; background: white; cursor: crosshair; }
+        body { margin: 0; overflow: hidden; background: #222; font-family: 'Arial Black', sans-serif; }
+        #ui { position: fixed; top: 20px; left: 20px; z-index: 20; background: rgba(255,255,255,0.9); padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        canvas { display: block; background: #000; cursor: crosshair; }
+        
+        #startLink {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: transparent;
+            font-size: 120px;
+            text-decoration: none;
+            z-index: 30;
+            display: none;
+            cursor: pointer;
+            padding: 20px 50px;
+        }
     </style>
 </head>
 <body>
     <div id="ui">
         <h3>インクを塗ろう！</h3>
         <label>インクの色: </label>
-        <input type="color" id="inkColor" value="#000000">
-        <button onclick="clearCanvas()">全消去</button>
-        <p><small>画面をクリックしてね</small></p>
+        <input type="color" id="inkColor" value="#ff0055">
+        <button onclick="resetGame()">リセット</button>
+        <p id="status"><small>画面をクリックしてね</small></p>
     </div>
+
+    <a id="startLink" href="#" onclick="alert('Game Start!')">START</a>
+    
     <canvas id="gameCanvas"></canvas>
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const colorInput = document.getElementById('inkColor');
-
-        // キャンバスサイズを画面いっぱいに
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        // クリックでインクを配置
-        canvas.addEventListener('mousedown', (e) => {
-            const x = e.clientX;
-            const y = e.clientY;
-            placeSplatter(x, y);
-        });
-
-        async function placeSplatter(x, y) {
-            const color = encodeURIComponent(colorInput.value);
-            // Python APIを呼び出して、現在の色設定でランダムな飛沫を取得
-            const response = await fetch(`/get_splatter?color=${color}`);
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-
-            const img = new Image();
-            img.src = url;
-            img.onload = () => {
-                // 中心がクリック位置にくるように描画
-                // Python側でサイズを400にしているので、半分ずらす
-                const drawSize = 200;
-                ctx.drawImage(img, x - drawSize/2, y - drawSize/2, drawSize, drawSize);
-                URL.revokeObjectURL(url);
-            };
-        }
-
-        function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-    </script>
+    <script src="{{ url_for('static', filename='scripts/game.js') }}"></script>
 </body>
 </html>
