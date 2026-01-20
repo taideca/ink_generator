@@ -2,7 +2,8 @@ import random
 import math
 from PIL import Image, ImageDraw, ImageFilter
 
-def create_ink_splatter(size=300, color_hex="#000000"):
+
+def create_ink_splatter(size=100, color_hex="#000000"):
     # --- サイズに依存しない比率設定 ---
     # すべて size * 比率 にすることで、サイズ変更に対応
     CORE_RADIUS = size * 0.15     # 核は画像サイズの15%
@@ -45,8 +46,8 @@ def create_ink_splatter(size=300, color_hex="#000000"):
         if is_connected:
             rand_width_scale = random.uniform(0.6, 1.3)
             # 幅もサイズ(CORE_RADIUS)に比例させる
-            base_w = CORE_RADIUS * 0.12 
-            
+            base_w = CORE_RADIUS * 0.12
+
             spike_points = []
             steps = 12
             for s in range(steps + 1):
@@ -55,7 +56,7 @@ def create_ink_splatter(size=300, color_hex="#000000"):
                     width = (base_w * (1 - t) + base_w * 0.3) * rand_width_scale
                 else:
                     width = (base_w * 0.6 + base_w * 0.5 * (t - 0.8) * 5) * random.uniform(0.9, 1.2)
-                
+
                 curr_dist = length * t
                 cx = center[0] + curr_dist * math.cos(angle)
                 cy = center[1] + curr_dist * math.sin(angle)
@@ -67,7 +68,7 @@ def create_ink_splatter(size=300, color_hex="#000000"):
                 t = s / steps
                 if t < 0.8: width = (base_w * (1 - t) + base_w * 0.3) * rand_width_scale
                 else: width = (base_w * 0.6 + base_w * 0.5 * (t - 0.8) * 5) * random.uniform(0.9, 1.2)
-                
+
                 curr_dist = length * t
                 cx = center[0] + curr_dist * math.cos(angle)
                 cy = center[1] + curr_dist * math.sin(angle)
