@@ -1,21 +1,26 @@
-import streamlit as st
-import random
-import math
-from PIL import Image, ImageDraw, ImageFilter
 import io
+import math
+import random
+
+import streamlit as st
+from PIL import Image, ImageDraw, ImageFilter
 
 # ページ設定
 st.set_page_config(page_title="Ink Generator", layout="centered")
 
-def create_ink_splatter(size, ink_color, core_radius, num_spikes, spike_min, spike_max, jitter_val, prob_base, blur_rad, threshold):
+
+def create_ink_splatter(
+    size, ink_color, core_radius, num_spikes, spike_min, spike_max, jitter_val, prob_base, blur_rad, threshold
+):
     # PILの描画処理（元のロジックを流用）
     canvas = Image.new("L", (size, size), 0)
     draw = ImageDraw.Draw(canvas)
     center = (size // 2, size // 2)
 
     # 1. 中央の核
-    draw.ellipse([center[0]-core_radius, center[1]-core_radius,
-                   center[0]+core_radius, center[1]+core_radius], fill=255)
+    draw.ellipse(
+        [center[0] - core_radius, center[1] - core_radius, center[0] + core_radius, center[1] + core_radius], fill=255
+    )
 
     angle_step = (2 * math.pi) / num_spikes
 
@@ -38,7 +43,11 @@ def create_ink_splatter(size, ink_color, core_radius, num_spikes, spike_min, spi
             steps = 12
             for s in range(steps + 1):
                 t = s / steps
-                width = (18 * (1 - t) + 6) * rand_width_scale if t < 0.8 else (12 + 10 * (t - 0.8) * 5) * random.uniform(0.9, 1.2)
+                width = (
+                    (18 * (1 - t) + 6) * rand_width_scale
+                    if t < 0.8
+                    else (12 + 10 * (t - 0.8) * 5) * random.uniform(0.9, 1.2)
+                )
                 curr_dist = length * t
                 cx = center[0] + curr_dist * math.cos(angle)
                 cy = center[1] + curr_dist * math.sin(angle)
@@ -46,7 +55,11 @@ def create_ink_splatter(size, ink_color, core_radius, num_spikes, spike_min, spi
                 spike_points.append((cx + width * math.cos(perp_angle), cy + width * math.sin(perp_angle)))
             for s in range(steps, -1, -1):
                 t = s / steps
-                width = (18 * (1 - t) + 6) * rand_width_scale if t < 0.8 else (12 + 10 * (t - 0.8) * 5) * random.uniform(0.9, 1.2)
+                width = (
+                    (18 * (1 - t) + 6) * rand_width_scale
+                    if t < 0.8
+                    else (12 + 10 * (t - 0.8) * 5) * random.uniform(0.9, 1.2)
+                )
                 curr_dist = length * t
                 cx = center[0] + curr_dist * math.cos(angle)
                 cy = center[1] + curr_dist * math.sin(angle)
@@ -67,11 +80,12 @@ def create_ink_splatter(size, ink_color, core_radius, num_spikes, spike_min, spi
     # 4. 色の適用
     result = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     # StreamlitのカラーピッカーはHEXで来るのでRGBに変換
-    rgb_color = tuple(int(ink_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
+    rgb_color = tuple(int(ink_color.lstrip("#")[i : i + 2], 16) for i in (0, 2, 4))
     color_layer = Image.new("RGBA", (size, size), rgb_color + (255,))
     result.paste(color_layer, (0, 0), mask=canvas)
 
     return result
+
 
 # --- UI (Streamlit) ---
 st.title("Ink Generator")
@@ -95,9 +109,16 @@ threshold = 100
 # 生成ボタン
 if st.button("画像を生成する"):
     img = create_ink_splatter(
-        size, ink_color, core_radius, num_spikes,
-        spike_range[0], spike_range[1], spacing_jitter,
-        prob_base, blur_radius, threshold
+        size,
+        ink_color,
+        core_radius,
+        num_spikes,
+        spike_range[0],
+        spike_range[1],
+        spacing_jitter,
+        prob_base,
+        blur_radius,
+        threshold,
     )
 
     # 画像の表示
@@ -108,11 +129,6 @@ if st.button("画像を生成する"):
     img.save(buf, format="PNG")
     byte_im = buf.getvalue()
 
-    st.download_button(
-        label="この画像をダウンロード",
-        data=byte_im,
-        file_name="ink.png",
-        mime="image/png"
-    )
+    st.download_button(label="この画像をダウンロード", data=byte_im, file_name="ink.png", mime="image/png")
 else:
     st.info("左のパネルでパラメータを調整して、生成ボタンを押してください。")
