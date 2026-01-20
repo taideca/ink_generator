@@ -3,10 +3,10 @@ import math
 from PIL import Image, ImageDraw, ImageFilter
 
 
-def create_ink_splatter(size=100, color_hex="#000000"):
+def create_ink_splatter(size, color_hex="#000000"):
     # --- サイズに依存しない比率設定 ---
     # すべて size * 比率 にすることで、サイズ変更に対応
-    CORE_RADIUS = size * 0.15     # 核は画像サイズの15%
+    CORE_RADIUS = size * 0.20     # 核は画像サイズの15%
     BLUR_RADIUS = size * 0.03     # ぼかしはサイズに合わせて調整
 
     NUM_SPIKES = 12
