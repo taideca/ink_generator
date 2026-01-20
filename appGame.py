@@ -14,7 +14,7 @@ def index():
 def get_splatter():
     color = request.args.get("color", "#000000")
     # logic.py内の関数を呼び出す。サイズをここで指定可能。
-    img = ink.create_ink_splatter(size=100, color_hex=color)
+    img = ink.create_ink_splatter(size=400, color_hex=color)
 
     img_io = io.BytesIO()
     img.save(img_io, "PNG")

@@ -51,7 +51,7 @@
             img.onload = () => {
                 // 中心がクリック位置にくるように描画
                 // Python側でサイズを400にしているので、半分ずらす
-                const drawSize = 400;
+                const drawSize = 200;
                 ctx.drawImage(img, x - drawSize/2, y - drawSize/2, drawSize, drawSize);
                 URL.revokeObjectURL(url);
             };
