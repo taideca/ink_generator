@@ -93,7 +93,7 @@ st.sidebar.header("調整パラメータ")
 
 # サイドバーにパラメータを配置
 # size = st.sidebar.number_input("画像サイズ", value=800)
-size = 640
+size = 680
 ink_color = st.sidebar.color_picker("インクの色", "#000000")
 core_radius = st.sidebar.slider("核の半径", 50, 300, 150)
 num_spikes = st.sidebar.slider("飛沫の数", 1, 30, 12)
