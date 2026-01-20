@@ -74,7 +74,7 @@ def create_ink_splatter(size, ink_color, core_radius, num_spikes, spike_min, spi
     return result
 
 # --- UI (Streamlit) ---
-st.title("Ink Splatter Generator")
+st.title("Ink Generator")
 st.sidebar.header("調整パラメータ")
 
 # サイドバーにパラメータを配置
@@ -101,7 +101,7 @@ if st.button("画像を生成する"):
     )
 
     # 画像の表示
-    st.image(img, caption="Generated Ink Splatter", use_container_width=True)
+    st.image(img, caption="Generated ink.png", use_container_width=True)
 
     # ダウンロードボタンの設置
     buf = io.BytesIO()
