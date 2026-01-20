@@ -12,19 +12,20 @@ function resize() {
     drawInitialState();
 }
 
+// --- 修正ポイント：初期状態を白背景・白文字に ---
 function drawInitialState() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#000";
+    
+    // 1. 背景を白く塗る
+    ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // 2. 文字を描く (白文字)
+    // 背景が白なので、この時点では目に見えません
     ctx.font = "bold 120px Arial Black";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
-    ctx.strokeText("START", canvas.width / 2, canvas.height / 2);
-
-    ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+    ctx.fillStyle = "#ffffff";
     ctx.fillText("START", canvas.width / 2, canvas.height / 2);
 }
 
@@ -32,7 +33,8 @@ window.addEventListener('resize', resize);
 resize();
 
 canvas.addEventListener('mousedown', (e) => {
-    if (isRevealed) return;
+    // Reveal後もインクを置けるようにするか、止めるかはお好みで
+    // if (isRevealed) return; 
     placeSplatter(e.clientX, e.clientY);
 });
 
@@ -46,12 +48,14 @@ async function placeSplatter(x, y) {
     img.src = url;
     img.onload = () => {
         const drawSize = 250;
+        
+        // インクを描画 (常に文字の下に潜り込ませるために source-over)
         ctx.globalCompositeOperation = 'source-over';
         ctx.drawImage(img, x - drawSize/2, y - drawSize/2, drawSize, drawSize);
 
-        // 文字を上書き
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = "white";
+        // --- 修正ポイント：インクを置くたびに白文字を再描画 ---
+        // これにより、インクが置かれた部分だけ文字が「白く」浮かび上がります
+        ctx.fillStyle = "#ffffff";
         ctx.fillText("START", canvas.width / 2, canvas.height / 2);
 
         URL.revokeObjectURL(url);
@@ -59,8 +63,9 @@ async function placeSplatter(x, y) {
     };
 }
 
+// --- 修正ポイント：判定ロジック ---
 function checkReveal() {
-    const checkWidth = 400;
+    const checkWidth = 450; // STARTの文字幅に合わせて調整
     const checkHeight = 150;
     const imageData = ctx.getImageData(
         canvas.width / 2 - checkWidth / 2, 
@@ -70,15 +75,22 @@ function checkReveal() {
     const pixels = imageData.data;
     let coloredPixels = 0;
 
+    // 白(255, 255, 255)以外のピクセル（＝インクが乗った場所）をカウント
     for (let i = 0; i < pixels.length; i += 4) {
-        if (pixels[i] > 20 || pixels[i+1] > 20 || pixels[i+2] > 20) {
+        const r = pixels[i];
+        const g = pixels[i+1];
+        const b = pixels[i+2];
+        
+        // 真っ白（背景）ではないピクセルがあるか判定
+        if (r < 250 || g < 250 || b < 250) {
             coloredPixels++;
         }
     }
 
     const ratio = coloredPixels / (checkWidth * checkHeight);
 
-    if (ratio > 0.7 && !isRevealed) {
+    // 判定感度は 0.5〜0.7 くらいが遊びやすいです
+    if (ratio > 0.6 && !isRevealed) {
         isRevealed = true;
         startLink.style.display = "block";
         statusText.innerHTML = "<strong>READY! CLICK START!</strong>";
