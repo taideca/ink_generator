@@ -3,6 +3,8 @@ const ctx = canvas.getContext('2d');
 const colorInput = document.getElementById('inkColor');
 const startLink = document.getElementById('startLink');
 const statusText = document.getElementById('status');
+const splatSound = new Audio('/static/sounds/splat.mp3'); // 音源のロード
+splatSound.volume = 0.5; // 音量の調整 (0.0 ～ 1.0)
 
 let isRevealed = false;
 
@@ -40,6 +42,10 @@ canvas.addEventListener('mousedown', (e) => {
 
 async function placeSplatter(x, y) {
     const color = encodeURIComponent(colorInput.value);
+    
+    const soundClone = splatSound.cloneNode(); 
+    soundClone.play();
+
     const response = await fetch(`/get_splatter?color=${color}`);
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
