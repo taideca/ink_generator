@@ -68,7 +68,6 @@ async function placeSplatter(x, y) {
         ctx.fillStyle = "#ffffff";
         ctx.fillText("START", canvas.width / 2, canvas.height / 2);
 
-        URL.revokeObjectURL(url);
         checkReveal();
     };
 }
@@ -103,15 +102,11 @@ function checkReveal() {
     if (ratio > 0.6 && !isRevealed) {
         isRevealed = true;
         startLink.style.display = "block";
-        statusText.innerHTML = "<strong>READY! CLICK START!</strong>";
-        statusText.style.color = "red";
     }
 }
 
 function resetGame() {
     isRevealed = false;
     startLink.style.display = "none";
-    statusText.innerHTML = "<small>画面をクリックしてね</small>";
-    statusText.style.color = "black";
     drawInitialState();
 }
