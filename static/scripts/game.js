@@ -3,14 +3,14 @@ const ctx = canvas.getContext('2d');
 // const colorInput = document.getElementById('inkColor');
 const startLink = document.getElementById('startLink');
 const statusText = document.getElementById('status');
-const splatSound = new Audio('/static/sounds/splat.mp3'); // 音源のロード
+const splatSound = new Audio('../static/sounds/splat.mp3'); // 音源のロード
 splatSound.volume = 0.5; // 音量の調整 (0.0 ～ 1.0)
 
 let isRevealed = false;
 
 // --- 設定 ---
 const TOTAL_IMAGES = 1000; // 用意した画像の枚数
-const IMAGE_DIR = '/static/images/splatters/'; // 画像が入っているフォルダ
+const IMAGE_DIR = '../static/images/splatters/'; // 画像が入っているフォルダ
 
 function resize() {
     canvas.width = window.innerWidth;
