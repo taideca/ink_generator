@@ -53,7 +53,7 @@ async function placeSplatter(x, y) {
     // 塗るインクをランダムに選択
     const randomNum = Math.floor(Math.random() * TOTAL_IMAGES);
     const formattedNum = String(randomNum).padStart(4, '0');
-    const imgPath = `${IMAGE_DIR}ink_${formattedNum}.png`;
+    const imgPath = `${IMAGE_DIR}ink${formattedNum}.png`;
 
     const img = new Image();
     img.src = imgPath;
