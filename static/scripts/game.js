@@ -12,6 +12,7 @@ let isRevealed = false;
 // --- ink image ---
 const TOTAL_IMAGES = 1000; // number of ink.png
 const IMAGE_DIR = '../static/images/splatters/';
+const OBJ_IMG_DIR = '../static/images/objects/';
 
 // --- state ---
 let gameState = 'START'; // 'START' or 'PLAYING'
@@ -54,8 +55,12 @@ async function renderStage(index) {
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText(obj.content, obj.x * canvas.width, obj.y * canvas.height);
+        } else if (obj.type === 'image') {
+            const img = await loadImage(`${OBJ_IMG_DIR}${obj.name}.png`);
+            const drawX = (obj.x * canvas.width) - (obj.w / 2);
+            const drawY = (obj.y * canvas.height) - (obj.h / 2);
+            ctx.drawImage(img, drawX, drawY, obj.w, obj.h);
         }
-        // 画像が必要な場合は loadImage 処理を追加
     }
     statusText.innerHTML = `Stage ${index + 1}: ${stage.hint}`;
 }
@@ -170,3 +175,6 @@ function resetGame() {
     startLink.style.display = "none";
     drawStartScreen();
 }
+
+window.addEventListener('resize', resize);
+resize();

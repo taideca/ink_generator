@@ -8,3 +8,9 @@ const STAGES_DATA = [
         targets: [{ x: 0.5, y: 0.7, r: 60, found: false }]
     }
 ];
+
+// === objects define templates ===
+// objects: [
+//     { type: 'text', content: "宝物庫", x: 0.5, y: 0.2, font: "40px serif", color: "#666" },
+//     { type: 'image', name: 'treasure', x: 0.5, y: 0.7, w: 200, h: 200 }
+// ],
