@@ -1,32 +1,39 @@
+// === settings ===
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-// const colorInput = document.getElementById('inkColor');
 const startLink = document.getElementById('startLink');
 const statusText = document.getElementById('status');
-const splatSound = new Audio('../static/sounds/splat.mp3'); // 音源のロード
-splatSound.volume = 0.5; // 音量の調整 (0.0 ～ 1.0)
+// --- sound effect ---
+const splatSound = new Audio('../static/sounds/splat.mp3'); // loading sound file
+splatSound.volume = 0.5; // volume (0.0 ~ 1.0)
 
 let isRevealed = false;
 
-// --- 設定 ---
-const TOTAL_IMAGES = 1000; // 用意した画像の枚数
-const IMAGE_DIR = '../static/images/splatters/'; // 画像が入っているフォルダ
+// --- ink image ---
+const TOTAL_IMAGES = 1000; // number of ink.png
+const IMAGE_DIR = '../static/images/splatters/';
+
+// --- state ---
+let gameState = 'START'; // 'START' or 'PLAYING'
+let currentStageIndex = 0;
+let isStageCleared = false;
+let loadedImages = {};
 
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    drawInitialState();
+    if (gameState === 'START') {
+        drawStartScreen();
+    } else {
+        renderStage(currentStageIndex);
+    }
 }
 
-// --- 修正ポイント：初期状態を白背景・白文字に ---
-function drawInitialState() {
+// === start screen ===
+function drawStartScreen() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // 1. 背景を白く塗る
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "#ffffff";  // background color
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // 2. 文字を描く (白文字)
     ctx.font = "bold 120px Arial Black";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -34,23 +41,38 @@ function drawInitialState() {
     ctx.fillText("START", canvas.width / 2, canvas.height / 2);
 }
 
-window.addEventListener('resize', resize);
-resize();
+// === game screen ===
+async function renderStage(index) {
+    const stage = STAGES_DATA[index];
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    for (const obj of stage.objects) {
+        if (obj.type === 'text') {
+            ctx.font = obj.font;
+            ctx.fillStyle = obj.color;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(obj.content, obj.x * canvas.width, obj.y * canvas.height);
+        }
+        // 画像が必要な場合は loadImage 処理を追加
+    }
+    statusText.innerHTML = `Stage ${index + 1}: ${stage.hint}`;
+}
+
+// === click event ===
 canvas.addEventListener('mousedown', (e) => {
     // Reveal後もインクを置けるようにするか、止めるかはお好みで
     // if (isRevealed) return;
+    if (isStageCleared && gameState === 'PLAYING') return;
     placeSplatter(e.clientX, e.clientY);
 });
 
 async function placeSplatter(x, y) {
-    // const color = encodeURIComponent(colorInput.value);
+    // playing click SE
+    splatSound.cloneNode().play();
 
-    // SE再生
-    const soundClone = splatSound.cloneNode();
-    soundClone.play();
-
-    // 塗るインクをランダムに選択
+    // random select ink
     const randomNum = Math.floor(Math.random() * TOTAL_IMAGES);
     const formattedNum = String(randomNum).padStart(4, '0');
     const imgPath = `${IMAGE_DIR}ink${formattedNum}.png`;
@@ -59,21 +81,23 @@ async function placeSplatter(x, y) {
     img.src = imgPath;
     img.onload = () => {
         const drawSize = 250;
-
-        // インクを描画 (常に文字の下に潜り込ませるために source-over)
         ctx.globalCompositeOperation = 'source-over';
         ctx.drawImage(img, x - drawSize/2, y - drawSize/2, drawSize, drawSize);
 
-        // --- 修正ポイント：インクを置くたびに白文字を再描画 ---
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText("START", canvas.width / 2, canvas.height / 2);
-
-        checkReveal();
+        if (gameState === 'START') {
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 120px Arial Black";
+            ctx.fillText("START", canvas.width / 2, canvas.height / 2);
+            checkStartReveal();
+        } else {
+            // judge clear
+            checkStageHit(x, y);
+        }
     };
 }
 
-// --- 修正ポイント：判定ロジック ---
-function checkReveal() {
+// --- judge in start screen ---
+function checkStartReveal() {
     const checkWidth = 450; // STARTの文字幅に合わせて調整
     const checkHeight = 150;
     const imageData = ctx.getImageData(
@@ -83,30 +107,66 @@ function checkReveal() {
     );
     const pixels = imageData.data;
     let coloredPixels = 0;
-
     // 白(255, 255, 255)以外のピクセル（＝インクが乗った場所）をカウント
     for (let i = 0; i < pixels.length; i += 4) {
-        const r = pixels[i];
-        const g = pixels[i+1];
-        const b = pixels[i+2];
-
-        // 真っ白（背景）ではないピクセルがあるか判定
-        if (r < 250 || g < 250 || b < 250) {
-            coloredPixels++;
-        }
+        if (pixels[i] < 250) coloredPixels++;
     }
 
     const ratio = coloredPixels / (checkWidth * checkHeight);
-
     // 判定感度は 0.5〜0.7 くらいが遊びやすいです
     if (ratio > 0.6 && !isRevealed) {
         isRevealed = true;
+        startLink.innerHTML = "START";
         startLink.style.display = "block";
+        startLink.onclick = startGame;
     }
 }
 
+// ---- game start ---
+function startGame() {
+    gameState = 'PLAYING';
+    startLink.style.display = "none";
+    currentStageIndex = 0;
+    renderStage(currentStageIndex);
+}
+
+// --- judge hit on the playing screen ---
+function checkStageHit(clickX, clickY) {
+    const stage = STAGES_DATA[currentStageIndex];
+    let allFound = true;
+
+    stage.targets.forEach(target => {
+        const tx = target.x * canvas.width;
+        const ty = target.y * canvas.height;
+        const dist = Math.sqrt((clickX - tx)**2 + (clickY - ty)**2);
+        if (dist < target.r) target.found = true;
+        if (!target.found) allFound = false;
+    });
+
+    if (allFound) {
+        isStageCleared = true;
+        startLink.innerHTML = "NEXT CLEAR →";
+        startLink.style.display = "block";
+        startLink.onclick = nextStage;
+    }
+}
+
+// --- transitioning stages ---
+function nextStage() {
+    currentStageIndex++;
+    if (currentStageIndex < STAGES_DATA.length) {
+        isStageCleared = false;
+        startLink.style.display = "none";
+        renderStage(currentStageIndex);
+    } else {
+        statusText.innerHTML = "All Clear!";
+        startLink.style.display = "none";
+    }
+}
+
+// --- reset ---
 function resetGame() {
     isRevealed = false;
     startLink.style.display = "none";
-    drawInitialState();
+    drawStartScreen();
 }
