@@ -20,6 +20,31 @@ let currentStageIndex = 0;
 let isStageCleared = false;
 let loadedImages = {};
 
+// --- utility ---
+function drawTextCentered(text, color, fontSize = "120px") {
+    ctx.font = `bold ${fontSize} Arial Black`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = color;
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+}
+
+// === image loader ===
+function loadImage(src) {
+    return new Promise((resolve) => {
+        if (loadedImages[src]) {
+            resolve(loadedImages[src]);
+            return;
+        }
+        const img = new Image();
+        img.src = src;
+        img.onload = () => {
+            loadedImages[src] = img;
+            resolve(img);
+        };
+    });
+}
+
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -35,11 +60,7 @@ function drawStartScreen() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#ffffff";  // background color
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.font = "bold 120px Arial Black";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText("START", canvas.width / 2, canvas.height / 2);
+    drawTextCentered("START", "#ffffff");
 }
 
 // === game screen ===
@@ -69,7 +90,8 @@ async function renderStage(index) {
 canvas.addEventListener('mousedown', (e) => {
     // Reveal後もインクを置けるようにするか、止めるかはお好みで
     // if (isRevealed) return;
-    if (isStageCleared && gameState === 'PLAYING') return;
+    // ステージクリア後、リンクが出るまではインクを置ける
+    if (isStageCleared && startLink.style.display === "block") return;
     placeSplatter(e.clientX, e.clientY);
 });
 
@@ -90,10 +112,11 @@ async function placeSplatter(x, y) {
         ctx.drawImage(img, x - drawSize/2, y - drawSize/2, drawSize, drawSize);
 
         if (gameState === 'START') {
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 120px Arial Black";
-            ctx.fillText("START", canvas.width / 2, canvas.height / 2);
-            checkStartReveal();
+            drawTextCentered("START", "#ffffff");
+            checkTextReveal("START", startGame);
+        } else if (isStageCleared) {
+            drawTextCentered("CLEAR", "#ffffff");
+            checkTextReveal("CLEAR", nextStage);
         } else {
             // judge clear
             checkStageHit(x, y);
@@ -101,8 +124,8 @@ async function placeSplatter(x, y) {
     };
 }
 
-// --- judge in start screen ---
-function checkStartReveal() {
+// --- judge appearing text ---
+function checkTextReveal(text, callback) {
     const checkWidth = 450; // STARTの文字幅に合わせて調整
     const checkHeight = 150;
     const imageData = ctx.getImageData(
@@ -121,15 +144,16 @@ function checkStartReveal() {
     // 判定感度は 0.5〜0.7 くらいが遊びやすいです
     if (ratio > 0.6 && !isRevealed) {
         isRevealed = true;
-        startLink.innerHTML = "START";
+        startLink.innerHTML = text;
         startLink.style.display = "block";
-        startLink.onclick = startGame;
+        startLink.onclick = callback;
     }
 }
 
 // ---- game start ---
 function startGame() {
     gameState = 'PLAYING';
+    isRevealed = false;
     startLink.style.display = "none";
     currentStageIndex = 0;
     renderStage(currentStageIndex);
@@ -149,10 +173,21 @@ function checkStageHit(clickX, clickY) {
     });
 
     if (allFound) {
-        isStageCleared = true;
-        startLink.innerHTML = "NEXT CLEAR →";
-        startLink.style.display = "block";
-        startLink.onclick = nextStage;
+        showClearEffect();
+    }
+}
+
+// --- clear effect ---
+async function showClearEffect() {
+    isStageCleared = true;
+    isRevealed = false; // CLEAR文字の出現判定用にリセット
+    statusText.innerHTML = "<strong>CLEAR!! インクを塗って次へ！</strong>";
+
+    // 演出として、中央付近に自動でいくつかインクを飛ばす
+    for(let i=0; i<5; i++){
+        const rx = canvas.width / 2 + (Math.random() - 0.5) * 200;
+        const ry = canvas.height / 2 + (Math.random() - 0.5) * 100;
+        setTimeout(() => placeSplatter(rx, ry), i * 200);
     }
 }
 
@@ -161,17 +196,21 @@ function nextStage() {
     currentStageIndex++;
     if (currentStageIndex < STAGES_DATA.length) {
         isStageCleared = false;
+        isRevealed = false;
         startLink.style.display = "none";
         renderStage(currentStageIndex);
     } else {
         statusText.innerHTML = "All Clear!";
         startLink.style.display = "none";
+        // 全クリア後の演出が必要ならここに追加
     }
 }
 
 // --- reset ---
 function resetGame() {
     isRevealed = false;
+    isStageCleared = false;
+    gameState = 'START';
     startLink.style.display = "none";
     drawStartScreen();
 }
