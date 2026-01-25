@@ -14,8 +14,7 @@ let isRevealed = false;
 
 // --- ink image ---
 const TOTAL_IMAGES = 1000; // number of ink.png
-const IMAGE_DIR = '../static/images/splatters/';
-const OBJ_IMG_DIR = '../static/images/objects/';
+const IMAGE_DIR = '../static/images/';
 
 // --- state ---
 let gameState = 'START'; // 'START' or 'PLAYING'
@@ -48,33 +47,32 @@ function loadImage(src) {
     });
 }
 
-function resize() {
+async function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     if (gameState === 'START') {
-        drawStartScreen();
+        await drawStartScreen();
     } else {
-        renderStage(currentStageIndex);
+        await renderStage(currentStageIndex);
     }
 }
 
 // === start screen ===
-function drawStartScreen() {
+async function drawStartScreen() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#ffffff";  // background color
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // // タイトルロゴの表示
-    // try {
-    //     const logo = await loadImage(`${OBJ_IMG_DIR}logo.png`);
-    //     const logoW = 400;
-    //     const logoH = logo.height * (logoW / logo.width);
-    //     ctx.drawImage(logo, canvas.width/2 - logoW/2, 50, logoW, logoH);
-    // } catch(e) { /* ロゴがない場合はスキップ */ }
-
+    // タイトルロゴの表示
+    const logo = await loadImage(`${IMAGE_DIR}logo.png`);
+    if (logo) {
+        const logoW = 400;
+        const logoH = logo.height * (logoW / logo.width);
+        ctx.drawImage(logo, canvas.width/2 - logoW/2, 50, logoW, logoH);
+    }
     // ルール説明の表示
-    ctx.font = "20px sans-serif";
-    ctx.fillStyle = "#333";
+    ctx.font = "20px ヒラギノ明朝";
+    ctx.fillStyle = "#000";
     ctx.textAlign = "center";
     ctx.fillText("【遊び方】画面のどこかに隠れた正解を探してインクを垂らそう！", canvas.width / 2, canvas.height - 100);
     ctx.fillText("すべての正解を見つけるとステージクリアです。", canvas.width / 2, canvas.height - 70);
@@ -102,7 +100,7 @@ async function renderStage(index) {
             ctx.textBaseline = "middle";
             ctx.fillText(obj.content, obj.x * canvas.width, obj.y * canvas.height);
         } else if (obj.type === 'image') {
-            const img = await loadImage(`${OBJ_IMG_DIR}${obj.name}.png`);
+            const img = await loadImage(`${IMAGE_DIR}objects/${obj.name}.png`);
             const drawX = (obj.x * canvas.width) - (obj.w / 2);
             const drawY = (obj.y * canvas.height) - (obj.h / 2);
             ctx.drawImage(img, drawX, drawY, obj.w, obj.h);
@@ -141,7 +139,7 @@ async function placeSplatter(x, y) {
     // random select ink
     const randomNum = Math.floor(Math.random() * TOTAL_IMAGES);
     const formattedNum = String(randomNum).padStart(4, '0');
-    const imgPath = `${IMAGE_DIR}ink${formattedNum}.png`;
+    const imgPath = `${IMAGE_DIR}splatters/ink${formattedNum}.png`;
 
     const img = new Image();
     img.src = imgPath;
