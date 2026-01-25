@@ -127,7 +127,7 @@ async function placeSplatter(x, y) {
 // --- judge appearing text ---
 function checkTextReveal(text, callback) {
     const checkWidth = 450; // STARTの文字幅に合わせて調整
-    const checkHeight = 150;
+    const checkHeight = 110;
     const imageData = ctx.getImageData(
         canvas.width / 2 - checkWidth / 2, 
         canvas.height / 2 - checkHeight / 2, 
@@ -154,6 +154,7 @@ function checkTextReveal(text, callback) {
 function startGame() {
     gameState = 'PLAYING';
     isRevealed = false;
+    isStageCleared = false;
     startLink.style.display = "none";
     currentStageIndex = 0;
     renderStage(currentStageIndex);
@@ -179,16 +180,21 @@ function checkStageHit(clickX, clickY) {
 
 // --- clear effect ---
 async function showClearEffect() {
+    if (isStageCleared) return; // 二重発動防止
     isStageCleared = true;
     isRevealed = false; // CLEAR文字の出現判定用にリセット
     statusText.innerHTML = "<strong>CLEAR!! インクを塗って次へ！</strong>";
 
-    // 演出として、中央付近に自動でいくつかインクを飛ばす
-    for(let i=0; i<5; i++){
-        const rx = canvas.width / 2 + (Math.random() - 0.5) * 200;
-        const ry = canvas.height / 2 + (Math.random() - 0.5) * 100;
-        setTimeout(() => placeSplatter(rx, ry), i * 200);
-    }
+    // "CLEAR" の文字の概ねの位置（中央からのオフセット）に順番にインクを落とす
+    // 文字幅を約500pxと想定した5文字分の相対位置
+    const centers = [-200, -100, 0, 100, 200];
+    centers.forEach((offsetX, i) => {
+        setTimeout(() => {
+            const rx = canvas.width / 2 + offsetX + (Math.random() - 0.5) * 40;
+            const ry = canvas.height / 2 + (Math.random() - 0.5) * 40;
+            placeSplatter(rx, ry);
+        }, i * 200); // 0.25秒間隔で一文字ずつ
+    });
 }
 
 // --- transitioning stages ---
@@ -216,4 +222,4 @@ function resetGame() {
 }
 
 window.addEventListener('resize', resize);
-resize();
+resize();   // 初回起動
