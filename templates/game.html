@@ -7,11 +7,12 @@
     <link rel="stylesheet" href="../static/styles/style.css">
 </head>
 <body>
-    <button onclick="resetGame()">リセット</button>
 
     <a id="startLink" href="#" onclick="alert('Game Start!')">START</a>
 
-    <canvas id="gameCanvas"></canvas>
+    <canvas id="gameCanvas">
+        <button onclick="resetGame()">リセット</button>
+    </canvas>
 
     <script src="../static/scripts/stages.js"></script>
     <script src="../static/scripts/game.js"></script>
