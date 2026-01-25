@@ -127,7 +127,7 @@ async function placeSplatter(x, y) {
 // --- judge appearing text ---
 function checkTextReveal(text, callback) {
     const checkWidth = 450; // STARTの文字幅に合わせて調整
-    const checkHeight = 110;
+    const checkHeight = 200;
     const imageData = ctx.getImageData(
         canvas.width / 2 - checkWidth / 2, 
         canvas.height / 2 - checkHeight / 2, 
