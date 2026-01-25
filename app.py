@@ -10,7 +10,16 @@ st.set_page_config(page_title="Ink Generator", layout="centered")
 
 
 def create_ink_splatter(
-    size, ink_color, core_radius, num_spikes, spike_min, spike_max, jitter_val, prob_base, blur_rad, threshold
+    size,
+    ink_color,
+    core_radius,
+    num_spikes,
+    spike_min,
+    spike_max,
+    jitter_val,
+    prob_base,
+    blur_rad,
+    threshold
 ):
     # PILの描画処理（元のロジックを流用）
     canvas = Image.new("L", (size, size), 0)
@@ -19,7 +28,11 @@ def create_ink_splatter(
 
     # 1. 中央の核
     draw.ellipse(
-        [center[0] - core_radius, center[1] - core_radius, center[0] + core_radius, center[1] + core_radius], fill=255
+        [center[0] - core_radius,
+         center[1] - core_radius,
+         center[0] + core_radius,
+         center[1] + core_radius],
+        fill=255
     )
 
     angle_step = (2 * math.pi) / num_spikes
@@ -52,7 +65,8 @@ def create_ink_splatter(
                 cx = center[0] + curr_dist * math.cos(angle)
                 cy = center[1] + curr_dist * math.sin(angle)
                 perp_angle = angle + math.pi / 2
-                spike_points.append((cx + width * math.cos(perp_angle), cy + width * math.sin(perp_angle)))
+                spike_points.append((cx + width * math.cos(perp_angle),
+                                     cy + width * math.sin(perp_angle)))
             for s in range(steps, -1, -1):
                 t = s / steps
                 width = (
@@ -64,14 +78,21 @@ def create_ink_splatter(
                 cx = center[0] + curr_dist * math.cos(angle)
                 cy = center[1] + curr_dist * math.sin(angle)
                 perp_angle = angle - math.pi / 2
-                spike_points.append((cx + width * math.cos(perp_angle), cy + width * math.sin(perp_angle)))
+                spike_points.append((cx + width * math.cos(perp_angle),
+                                     cy + width * math.sin(perp_angle)))
             draw.polygon(spike_points, fill=255)
         else:
             tip_r_w = random.uniform(8, 20)
             tip_r_h = tip_r_w * random.uniform(1.1, 1.4)
             tip_x = center[0] + length * math.cos(angle)
             tip_y = center[1] + length * math.sin(angle)
-            draw.ellipse([tip_x - tip_r_w, tip_y - tip_r_h, tip_x + tip_r_w, tip_y + tip_r_h], fill=255)
+            draw.ellipse(
+                [tip_x - tip_r_w,
+                 tip_y - tip_r_h,
+                 tip_x + tip_r_w,
+                 tip_y + tip_r_h],
+                fill=255
+            )
 
     # 3. 仕上げ
     canvas = canvas.filter(ImageFilter.GaussianBlur(radius=blur_rad))
@@ -80,7 +101,8 @@ def create_ink_splatter(
     # 4. 色の適用
     result = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     # StreamlitのカラーピッカーはHEXで来るのでRGBに変換
-    rgb_color = tuple(int(ink_color.lstrip("#")[i : i + 2], 16) for i in (0, 2, 4))
+    rgb_color = tuple(int(ink_color.lstrip("#")[i: i + 2], 16)
+                      for i in (0, 2, 4))
     color_layer = Image.new("RGBA", (size, size), rgb_color + (255,))
     result.paste(color_layer, (0, 0), mask=canvas)
 
@@ -107,7 +129,7 @@ blur_radius = 21
 threshold = 100
 
 # 生成ボタン
-if st.button("画像を生成する"):
+if st.button("Generate"):
     img = create_ink_splatter(
         size,
         ink_color,
@@ -129,6 +151,9 @@ if st.button("画像を生成する"):
     img.save(buf, format="PNG")
     byte_im = buf.getvalue()
 
-    st.download_button(label="この画像をダウンロード", data=byte_im, file_name="ink.png", mime="image/png")
+    st.download_button(label="Download",
+                       data=byte_im,
+                       file_name="ink.png",
+                       mime="image/png")
 else:
     st.info("左のパネルでパラメータを調整して、生成ボタンを押してください。")
