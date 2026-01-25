@@ -150,7 +150,7 @@ async function placeSplatter(x, y) {
 
         if (gameState === 'START') {
             drawTextCentered("START", "#ffffff");
-            checkTextReveal("START", 450, 120, startGame);
+            checkTextReveal("START", 450, 200, startGame);
         } else if (isStageCleared) {
             // デバッグ用判定枠（CLEAR時）
             if (DEBUG) {
