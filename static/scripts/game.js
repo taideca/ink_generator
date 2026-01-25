@@ -1,3 +1,6 @@
+// --- DEBUG MODE ---
+const DEBUG = true; // trueにすると正解エリアや判定枠が赤く見えます
+
 // === settings ===
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -60,6 +63,28 @@ function drawStartScreen() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#ffffff";  // background color
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // // タイトルロゴの表示
+    // try {
+    //     const logo = await loadImage(`${OBJ_IMG_DIR}logo.png`);
+    //     const logoW = 400;
+    //     const logoH = logo.height * (logoW / logo.width);
+    //     ctx.drawImage(logo, canvas.width/2 - logoW/2, 50, logoW, logoH);
+    // } catch(e) { /* ロゴがない場合はスキップ */ }
+
+    // ルール説明の表示
+    ctx.font = "20px sans-serif";
+    ctx.fillStyle = "#333";
+    ctx.textAlign = "center";
+    ctx.fillText("【遊び方】画面のどこかに隠れた正解を探してインクを垂らそう！", canvas.width / 2, canvas.height - 100);
+    ctx.fillText("すべての正解を見つけるとステージクリアです。", canvas.width / 2, canvas.height - 70);
+
+    // デバッグ用の判定枠可視化
+    if (DEBUG) {
+        ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
+        ctx.strokeRect(canvas.width/2 - 225, canvas.height/2 - 100, 450, 200);
+    }
+
     drawTextCentered("START", "#ffffff");
 }
 
@@ -83,6 +108,20 @@ async function renderStage(index) {
             ctx.drawImage(img, drawX, drawY, obj.w, obj.h);
         }
     }
+
+    // デバッグ用の正解エリア可視化
+    if (DEBUG) {
+        stage.targets.forEach(target => {
+            ctx.beginPath();
+            ctx.arc(target.x * canvas.width, target.y * canvas.height, target.r, 0, Math.PI * 2);
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
+            ctx.fill();
+        });
+    }
+
     statusText.innerHTML = `Stage ${index + 1}: ${stage.hint}`;
 }
 
@@ -113,10 +152,15 @@ async function placeSplatter(x, y) {
 
         if (gameState === 'START') {
             drawTextCentered("START", "#ffffff");
-            checkTextReveal("START", startGame);
+            checkTextReveal("START", 450, 200, startGame);
         } else if (isStageCleared) {
+            // デバッグ用判定枠（CLEAR時）
+            if (DEBUG) {
+                ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
+                ctx.strokeRect(canvas.width/2 - 300, canvas.height/2 - 75, 600, 150);
+            }
             drawTextCentered("CLEAR", "#ffffff");
-            checkTextReveal("CLEAR", nextStage);
+            checkTextReveal("CLEAR", 600, 150, nextStage);
         } else {
             // judge clear
             checkStageHit(x, y);
@@ -125,9 +169,7 @@ async function placeSplatter(x, y) {
 }
 
 // --- judge appearing text ---
-function checkTextReveal(text, callback) {
-    const checkWidth = 450; // STARTの文字幅に合わせて調整
-    const checkHeight = 200;
+function checkTextReveal(text, checkWidth, checkHeight, callback) {
     const imageData = ctx.getImageData(
         canvas.width / 2 - checkWidth / 2, 
         canvas.height / 2 - checkHeight / 2, 
@@ -163,23 +205,23 @@ function startGame() {
 // --- judge hit on the playing screen ---
 function checkStageHit(clickX, clickY) {
     const stage = STAGES_DATA[currentStageIndex];
-    let allFound = true;
+    let foundCount = 0;
 
     stage.targets.forEach(target => {
         const tx = target.x * canvas.width;
         const ty = target.y * canvas.height;
         const dist = Math.sqrt((clickX - tx)**2 + (clickY - ty)**2);
         if (dist < target.r) target.found = true;
-        if (!target.found) allFound = false;
+        if (target.found) foundCount++;
     });
 
-    if (allFound) {
+    if (foundCount === stage.targets.length && !isStageCleared) {
         showClearEffect();
     }
 }
 
 // --- clear effect ---
-async function showClearEffect() {
+function showClearEffect() {
     if (isStageCleared) return; // 二重発動防止
     isStageCleared = true;
     isRevealed = false; // CLEAR文字の出現判定用にリセット
@@ -190,8 +232,8 @@ async function showClearEffect() {
     const centers = [-200, -100, 0, 100, 200];
     centers.forEach((offsetX, i) => {
         setTimeout(() => {
-            const rx = canvas.width / 2 + offsetX + (Math.random() - 0.5) * 40;
-            const ry = canvas.height / 2 + (Math.random() - 0.5) * 40;
+            const rx = canvas.width / 2 + offsetX;
+            const ry = canvas.height / 2;
             placeSplatter(rx, ry);
         }, i * 200); // 0.25秒間隔で一文字ずつ
     });
