@@ -71,7 +71,7 @@ async function drawStartScreen() {
         ctx.drawImage(logo, canvas.width/2 - logoW/2, 50, logoW, logoH);
     }
     // ルール説明の表示
-    ctx.font = "20px ヒラギノ明朝";
+    ctx.font = "20px ヒラギノ明朝 ProN";
     ctx.fillStyle = "#000";
     ctx.textAlign = "center";
     ctx.fillText("【遊び方】画面のどこかに隠れた正解を探してインクを垂らそう！", canvas.width / 2, canvas.height - 100);
