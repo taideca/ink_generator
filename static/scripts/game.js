@@ -150,7 +150,7 @@ async function placeSplatter(x, y) {
 
         if (gameState === 'START') {
             drawTextCentered("START", "#ffffff");
-            checkTextReveal("START", 450, 100, startGame);
+            checkTextReveal("START", 450, 120, startGame);
         } else if (isStageCleared) {
             // デバッグ用判定枠（CLEAR時）
             if (DEBUG) {
@@ -158,7 +158,7 @@ async function placeSplatter(x, y) {
                 ctx.strokeRect(canvas.width/2 - 300, canvas.height/2 - 75, 600, 150);
             }
             drawTextCentered("CLEAR", "#ffffff");
-            checkTextReveal("CLEAR", 500, 100, nextStage);
+            checkTextReveal("CLEAR", 500, 120, nextStage);
         } else {
             // judge clear
             checkStageHit(x, y);
