@@ -47,13 +47,13 @@ function loadImage(src) {
     });
 }
 
-async function resize() {
+function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     if (gameState === 'START') {
-        await drawStartScreen();
+        drawStartScreen();
     } else {
-        await renderStage(currentStageIndex);
+        renderStage(currentStageIndex);
     }
 }
 
@@ -150,7 +150,7 @@ async function placeSplatter(x, y) {
 
         if (gameState === 'START') {
             drawTextCentered("START", "#ffffff");
-            checkTextReveal("START", 450, 200, startGame);
+            checkTextReveal("START", 450, 100, startGame);
         } else if (isStageCleared) {
             // デバッグ用判定枠（CLEAR時）
             if (DEBUG) {
@@ -158,7 +158,7 @@ async function placeSplatter(x, y) {
                 ctx.strokeRect(canvas.width/2 - 300, canvas.height/2 - 75, 600, 150);
             }
             drawTextCentered("CLEAR", "#ffffff");
-            checkTextReveal("CLEAR", 600, 150, nextStage);
+            checkTextReveal("CLEAR", 500, 100, nextStage);
         } else {
             // judge clear
             checkStageHit(x, y);
