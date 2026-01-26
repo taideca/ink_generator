@@ -8,26 +8,57 @@ body {
 
 /* キャンバス */
 canvas { 
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1; /* 一番下 */
     display: block; 
     background: #ffffff; 
     cursor: crosshair; 
 }
 
-/* STARTボタン（インクが溜まると出現するリンク） */
-#startLink {
+/* UIエリアを左上に配置 */
+#ui {
     position: fixed;
-    top: 50%; 
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: transparent; /* 文字はCanvas側で描画するため透明 */
-    font-size: 120px;
-    text-decoration: none;
-    z-index: 30;
-    display: none; /* 初期状態は非表示 */
-    cursor: pointer;
-    padding: 20px 50px;
+    top: 20px;
+    left: 20px;
+    z-index: 10; /* キャンバスより上 */
+    pointer-events: none; /* 下のキャンバスのクリックを邪魔しない（ボタン以外） */
 }
 
+/* ステータステキスト */
 #status {
-    margin-bottom: 0;
+    margin: 0 0 10px 0;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    font-weight: bold;
+    font-family: sans-serif;
+    color: #333;
+    display: inline-block;
+}
+
+/* ボタンを再びクリック可能にする */
+#resetBtn {
+    display: block;
+    pointer-events: auto; /* ボタンだけはクリックできるようにする */
+    padding: 8px 15px;
+    cursor: pointer;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* START/CLEARリンクの中央配置 */
+#startLink {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    display: none;
+    font-size: 120px;
+    font-family: 'Arial Black', sans-serif;
+    text-decoration: none;
+    color: transparent; /* 文字はキャンバスの白文字で見せるため */
 }

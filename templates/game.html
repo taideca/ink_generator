@@ -8,11 +8,14 @@
 </head>
 <body>
 
+    <div id="ui">
+        <p id="status">読み込み中...</p>
+        <button id="resetBtn" onclick="resetGame()">RESET</button>
+    </div>
+
     <a id="startLink" href="#" onclick="alert('Game Start!')">START</a>
 
-    <canvas id="gameCanvas">
-        <button onclick="resetGame()">リセット</button>
-    </canvas>
+    <canvas id="gameCanvas"></canvas>
 
     <script src="../static/scripts/stages.js"></script>
     <script src="../static/scripts/game.js"></script>
