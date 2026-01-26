@@ -44,16 +44,17 @@ function loadImage(src) {
             loadedImages[src] = img;
             resolve(img);
         };
+        img.onerror = () => resolve(null);
     });
 }
 
-function resize() {
+async function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     if (gameState === 'START') {
-        drawStartScreen();
+        await drawStartScreen();
     } else {
-        renderStage(currentStageIndex);
+        await renderStage(currentStageIndex);
     }
 }
 
@@ -64,14 +65,14 @@ async function drawStartScreen() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // タイトルロゴの表示
-    const logo = await loadImage(`${IMAGE_DIR}logo.png`);
+    const logo = await loadImage(`${IMAGE_DIR}inkpaint_logo.png`);
     if (logo) {
         const logoW = 400;
         const logoH = logo.height * (logoW / logo.width);
         ctx.drawImage(logo, canvas.width/2 - logoW/2, 50, logoW, logoH);
     }
     // ルール説明の表示
-    ctx.font = "20px ヒラギノ明朝 ProN";
+    ctx.font = "20px 'Hiragino Mincho ProN', 'MS Mincho', serif";
     ctx.fillStyle = "#000";
     ctx.textAlign = "center";
     ctx.fillText("【遊び方】画面のどこかに隠れた正解を探してインクを垂らそう！", canvas.width / 2, canvas.height - 100);
@@ -101,9 +102,11 @@ async function renderStage(index) {
             ctx.fillText(obj.content, obj.x * canvas.width, obj.y * canvas.height);
         } else if (obj.type === 'image') {
             const img = await loadImage(`${IMAGE_DIR}objects/${obj.name}.png`);
-            const drawX = (obj.x * canvas.width) - (obj.w / 2);
-            const drawY = (obj.y * canvas.height) - (obj.h / 2);
-            ctx.drawImage(img, drawX, drawY, obj.w, obj.h);
+            if (img) {
+                const drawX = (obj.x * canvas.width) - (obj.w / 2);
+                const drawY = (obj.y * canvas.height) - (obj.h / 2);
+                ctx.drawImage(img, drawX, drawY, obj.w, obj.h);
+            }
         }
     }
 
@@ -132,7 +135,7 @@ canvas.addEventListener('mousedown', (e) => {
     placeSplatter(e.clientX, e.clientY);
 });
 
-async function placeSplatter(x, y) {
+async function placeSplatter(x, y, isAuto = false) {
     // playing click SE
     splatSound.cloneNode().play();
 
@@ -161,7 +164,7 @@ async function placeSplatter(x, y) {
             checkTextReveal("CLEAR", 500, 120, nextStage);
         } else {
             // judge clear
-            checkStageHit(x, y);
+            if (!isAuto) checkStageHit(x, y);
         }
     };
 }
@@ -181,6 +184,12 @@ function checkTextReveal(text, checkWidth, checkHeight, callback) {
     }
 
     const ratio = coloredPixels / (checkWidth * checkHeight);
+
+    if (DEBUG) {
+        ctx.strokeStyle = "rgba(255, 0, 0, 0.3)";
+        ctx.strokeRect(canvas.width/2 - checkWidth/2, canvas.height/2 - checkHeight/2, checkWidth, checkHeight);
+    }
+
     // 判定感度は 0.5〜0.7 くらいが遊びやすいです
     if (ratio > 0.6 && !isRevealed) {
         isRevealed = true;
@@ -220,10 +229,10 @@ function checkStageHit(clickX, clickY) {
 
 // --- clear effect ---
 function showClearEffect() {
-    if (isStageCleared) return; // 二重発動防止
+    // if (isStageCleared) return; // 二重発動防止
     isStageCleared = true;
     isRevealed = false; // CLEAR文字の出現判定用にリセット
-    statusText.innerHTML = "<strong>CLEAR!! インクを塗って次へ！</strong>";
+    statusText.innerHTML = "<strong>CLEAR!!</strong>";
 
     // "CLEAR" の文字の概ねの位置（中央からのオフセット）に順番にインクを落とす
     // 文字幅を約500pxと想定した5文字分の相対位置
@@ -232,7 +241,7 @@ function showClearEffect() {
         setTimeout(() => {
             const rx = canvas.width / 2 + offsetX;
             const ry = canvas.height / 2;
-            placeSplatter(rx, ry);
+            placeSplatter(rx, ry, true);
         }, i * 200); // 0.25秒間隔で一文字ずつ
     });
 }

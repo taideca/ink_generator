@@ -2,7 +2,7 @@ const STAGES_DATA = [
     {
         hint: "宝箱の鍵を見つけて！",
         objects: [
-            { type: 'text', content: "宝物庫", x: 0.5, y: 0.2, font: "40px ヒラギノ明朝 ProN", color: "#000" },
+            { type: 'text', content: "宝物庫", x: 0.5, y: 0.2, font: "40px 'Hiragino Mincho ProN', 'MS Mincho', serif", color: "#000" },
             { type: 'text', content: "🎁", x: 0.5, y: 0.7, font: "100px HiraMinProN-W6", color: "#ccc" }
         ],
         targets: [{ x: 0.5, y: 0.7, r: 60, found: false }]
