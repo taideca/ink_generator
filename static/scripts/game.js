@@ -230,7 +230,7 @@ function showClearEffect() {
     statusText.innerHTML = "<strong>CLEAR!!</strong>";
 
     // "CLEAR" の文字の概ねの位置（中央からのオフセット）に順番にインクを落とす
-    const centers = [-210, -140, -70, 0, 70, 140, 210];
+    const centers = [-240, -160, -80, 0, 80, 160, 240];
     centers.forEach((offsetX, i) => {
         // 1文字のエリアに対して複数回のインク生成を行う
         const splattersPerLetter = 2; // ここを3に増やすとさらに派手になります
