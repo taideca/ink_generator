@@ -230,14 +230,19 @@ function showClearEffect() {
     statusText.innerHTML = "<strong>CLEAR!!</strong>";
 
     // "CLEAR" の文字の概ねの位置（中央からのオフセット）に順番にインクを落とす
-    // 文字幅を約500pxと想定した5文字分の相対位置
     const centers = [-200, -100, 0, 100, 200];
     centers.forEach((offsetX, i) => {
-        setTimeout(() => {
-            const rx = canvas.width / 2 + offsetX;
-            const ry = canvas.height / 2;
-            placeSplatter(rx, ry, true);
-        }, i * 200); // 0.25秒間隔で一文字ずつ
+        // 1文字のエリアに対して複数回のインク生成を行う
+        const splattersPerLetter = 2; // ここを3に増やすとさらに派手になります
+        for (let j = 0; j < splattersPerLetter; j++) {
+            setTimeout(() => {
+                // 横位置：文字の中心から少し左右に散らす
+                const rx = canvas.width / 2 + offsetX + (Math.random() - 0.5) * 60;
+                // 縦位置：中央（canvas.height/2）から上下に少し散らす
+                const ry = canvas.height / 2 + (Math.random() - 0.5) * 80;
+                placeSplatter(rx, ry, true);
+            }, i * 50 + (j * 50/splattersPerLetter)); // 文字ごとの間隔(150) + 1文字内の時間差(50)
+        }
     });
 }
 
