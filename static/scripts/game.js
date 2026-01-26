@@ -67,7 +67,7 @@ async function drawStartScreen() {
     // タイトルロゴの表示
     const logo = await loadImage(`${IMAGE_DIR}inkpaint_logo.png`);
     if (logo) {
-        const logoW = 400;
+        const logoW = 240;
         const logoH = logo.height * (logoW / logo.width);
         ctx.drawImage(logo, canvas.width/2 - logoW/2, 50, logoW, logoH);
     }
@@ -153,13 +153,8 @@ async function placeSplatter(x, y, isAuto = false) {
 
         if (gameState === 'START') {
             drawTextCentered("START", "#ffffff");
-            checkTextReveal("START", 450, 200, startGame);
+            checkTextReveal("START", 450, 180, startGame);
         } else if (isStageCleared) {
-            // デバッグ用判定枠（CLEAR時）
-            if (DEBUG) {
-                ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
-                ctx.strokeRect(canvas.width/2 - 300, canvas.height/2 - 75, 600, 150);
-            }
             drawTextCentered("CLEAR", "#ffffff");
             checkTextReveal("CLEAR", 500, 120, nextStage);
         } else {
