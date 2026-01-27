@@ -1,5 +1,5 @@
 // --- DEBUG MODE ---
-const DEBUG = true; // trueにすると正解エリアや判定枠が赤く見えます
+const DEBUG = false; // trueにすると正解エリアや判定枠が赤く見えます
 
 // === settings ===
 const canvas = document.getElementById('gameCanvas');
@@ -10,16 +10,14 @@ const statusText = document.getElementById('status');
 const splatSound = new Audio('../static/sounds/splat.mp3'); // loading sound file
 splatSound.volume = 0.5; // volume (0.0 ~ 1.0)
 
-let isRevealed = false;
-
 // --- ink image ---
 const TOTAL_IMAGES = 1000; // number of ink.png
 const IMAGE_DIR = '../static/images/';
 
 // --- state ---
-let gameState = 'START'; // 'START' or 'PLAYING'
 let currentStageIndex = 0;
 let isStageCleared = false;
+let isRevealed = false;
 let loadedImages = {};
 
 // --- utility ---
@@ -51,40 +49,7 @@ function loadImage(src) {
 async function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    if (gameState === 'START') {
-        await drawStartScreen();
-    } else {
-        await renderStage(currentStageIndex);
-    }
-}
-
-// === start screen ===
-async function drawStartScreen() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#ffffff";  // background color
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // タイトルロゴの表示
-    const logo = await loadImage(`${IMAGE_DIR}inkpaint_logo.png`);
-    if (logo) {
-        const logoW = 240;
-        const logoH = logo.height * (logoW / logo.width);
-        ctx.drawImage(logo, canvas.width/2 - logoW/2, 50, logoW, logoH);
-    }
-    // ルール説明の表示
-    ctx.font = "20px 'Hiragino Mincho ProN', 'MS Mincho', serif";
-    ctx.fillStyle = "#000";
-    ctx.textAlign = "center";
-    ctx.fillText("【遊び方】画面のどこかに隠れた正解を探してインクを垂らそう！", canvas.width / 2, canvas.height - 100);
-    ctx.fillText("すべての正解を見つけるとステージクリアです。", canvas.width / 2, canvas.height - 70);
-
-    // デバッグ用の判定枠可視化
-    if (DEBUG) {
-        ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
-        ctx.strokeRect(canvas.width/2 - 225, canvas.height/2 - 100, 450, 200);
-    }
-
-    drawTextCentered("START", "#ffffff");
+    await renderStage(currentStageIndex);
 }
 
 // === game screen ===
@@ -151,10 +116,7 @@ async function placeSplatter(x, y, isAuto = false) {
         ctx.globalCompositeOperation = 'source-over';
         ctx.drawImage(img, x - drawSize/2, y - drawSize/2, drawSize, drawSize);
 
-        if (gameState === 'START') {
-            drawTextCentered("START", "#ffffff");
-            checkTextReveal("START", 450, 180, startGame);
-        } else if (isStageCleared) {
+        if (isStageCleared) {
             drawTextCentered("CLEAR", "#ffffff");
             checkTextReveal("CLEAR", 500, 120, nextStage);
         } else {
@@ -181,7 +143,7 @@ function checkTextReveal(text, checkWidth, checkHeight, callback) {
     const ratio = coloredPixels / (checkWidth * checkHeight);
 
     if (DEBUG) {
-        ctx.strokeStyle = "rgba(255, 0, 0, 0.3)";
+        ctx.strokeStyle = "rgba(0, 255, 115, 0.3)";
         ctx.strokeRect(canvas.width/2 - checkWidth/2, canvas.height/2 - checkHeight/2, checkWidth, checkHeight);
     }
 
@@ -192,16 +154,6 @@ function checkTextReveal(text, checkWidth, checkHeight, callback) {
         startLink.style.display = "block";
         startLink.onclick = callback;
     }
-}
-
-// ---- game start ---
-function startGame() {
-    gameState = 'PLAYING';
-    isRevealed = false;
-    isStageCleared = false;
-    startLink.style.display = "none";
-    currentStageIndex = 0;
-    renderStage(currentStageIndex);
 }
 
 // --- judge hit on the playing screen ---
@@ -239,7 +191,7 @@ function showClearEffect() {
                 // 横位置：文字の中心から少し左右に散らす
                 const rx = canvas.width / 2 + offsetX + (Math.random() - 0.5) * 60;
                 // 縦位置：中央（canvas.height/2）から上下に少し散らす
-                const ry = canvas.height / 2 + (Math.random() - 0.5) *70;
+                const ry = canvas.height / 2 + (Math.random() - 0.5) * 70;
                 placeSplatter(rx, ry, true);
             }, i * 50 + (j * 50/splattersPerLetter)); // 文字ごとの間隔(150) + 1文字内の時間差(50)
         }
@@ -263,9 +215,9 @@ function nextStage() {
 
 // --- reset ---
 function resetGame() {
+    STAGES_DATA[currentStageIndex].targets.forEach(t => t.found = false);
     isRevealed = false;
     isStageCleared = false;
-    gameState = 'START';
     startLink.style.display = "none";
     drawStartScreen();
 }

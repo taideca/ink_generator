@@ -1,5 +1,19 @@
 const STAGES_DATA = [
     {
+        // --- Stage 0: タイトル画面 ---
+        hint: "ロゴのあたりを塗ってみて！",
+        objects: [
+            { type: 'image', name: 'logo', x: 0.5, y: 0.2, w: 400, h: 200 },
+            { type: 'text', content: "【遊び方】", x: 0.3, y: 0.7, font: "20px HiraMinProN-W6", color: "#000" },
+            { type: 'text', content: "- 画面をクリックしてインクを塗る", x: 0.5, y: 0.75, font: "20px HiraMinProN-W6", color: "#000" },
+            { type: 'text', content: "- おかしな箇所をインクで隠そう　", x: 0.5, y: 0.8, font: "20px HiraMinProN-W6", color: "#000" }
+        ],
+        targets: [
+            { x: 0.55, y: 0.2, r: 50, found: false } // ロゴの位置を塗れば次へ
+        ]
+    },
+    {
+        // --- Stage 1 ---
         hint: "宝箱の鍵を見つけて！",
         objects: [
             { type: 'text', content: "宝物庫", x: 0.5, y: 0.2, font: "40px 'Hiragino Mincho ProN', 'MS Mincho', serif", color: "#000" },
@@ -8,6 +22,7 @@ const STAGES_DATA = [
         targets: [{ x: 0.5, y: 0.7, r: 60, found: false }]
     },
     {
+        // --- Stage 2 ---
         hint: "間違いを見つけて",
         objects: [
             { type: 'text', content: "北", x: 0.5, y: 0.2, font: "40px HiraMinProN-W6", color: "#000" },
