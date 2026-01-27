@@ -1,5 +1,5 @@
 // --- DEBUG MODE ---
-const DEBUG = false; // trueにすると正解エリアや判定枠が赤く見えます
+const DEBUG = true; // trueにすると正解エリアや判定枠が赤く見えます
 
 // === settings ===
 const canvas = document.getElementById('gameCanvas');
