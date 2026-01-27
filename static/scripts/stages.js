@@ -9,7 +9,7 @@ const STAGES_DATA = [
             { type: 'text', content: "- おかしな箇所をインクで隠そう　", x: 0.5, y: 0.8, font: "20px HiraMinProN-W6", color: "#000" }
         ],
         targets: [
-            { x: 0.55, y: 0.2, r: 50, found: false } // ロゴの位置を塗れば次へ
+            { x: 0.56, y: 0.18, r: 50, found: false } // ロゴの位置を塗れば次へ
         ]
     },
     {
