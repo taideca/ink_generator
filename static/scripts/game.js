@@ -176,7 +176,7 @@ function checkStageHit(clickX, clickY) {
         if (t.found) return;
 
         // 1. 親となるオブジェクトをIDで探す
-        const parent = stage.objects.find(obj => obj.id === t.targetObj);
+        const parent = stage.objects.find(obj => obj.id === t.obj);
         if (!parent) return;
 
         // 2. 親オブジェクトの現在のピクセル座標とサイズ
