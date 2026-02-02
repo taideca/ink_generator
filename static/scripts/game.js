@@ -77,14 +77,26 @@ async function renderStage(index) {
 
     // デバッグ用の正解エリア可視化
     if (DEBUG) {
-        stage.targets.forEach(target => {
-            ctx.beginPath();
-            ctx.arc(target.x * canvas.width, target.y * canvas.height, target.r, 0, Math.PI * 2);
-            ctx.strokeStyle = "red";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
-            ctx.fill();
+        stage.targets.forEach(t => {
+            const parent = stage.objects.find(obj => obj.id === t.targetObj);
+            if (!parent) return;
+
+            const px = parent.x * canvas.width;
+            const py = parent.y * canvas.height;
+            const tx = px + (t.tx - 0.5) * parent.w;
+            const ty = py + (t.ty - 0.5) * parent.h;
+
+            ctx.strokeStyle = t.found ? "blue" : "red";
+            if (t.shape === 'rect') {
+                const tw = t.tw * parent.w;
+                const th = t.th * parent.h;
+                ctx.strokeRect(tx - tw/2, ty - th/2, tw, th);
+            } else {
+                const tr = t.tr * parent.w;
+                ctx.beginPath();
+                ctx.arc(tx, ty, tr, 0, Math.PI * 2);
+                ctx.stroke();
+            }
         });
     }
 
@@ -159,17 +171,43 @@ function checkTextReveal(text, checkWidth, checkHeight, callback) {
 // --- judge hit on the playing screen ---
 function checkStageHit(clickX, clickY) {
     const stage = STAGES_DATA[currentStageIndex];
-    let foundCount = 0;
 
-    stage.targets.forEach(target => {
-        const tx = target.x * canvas.width;
-        const ty = target.y * canvas.height;
-        const dist = Math.sqrt((clickX - tx)**2 + (clickY - ty)**2);
-        if (dist < target.r) target.found = true;
-        if (target.found) foundCount++;
+    stage.targets.forEach(t => {
+        if (t.found) return;
+
+        // 1. 親となるオブジェクトをIDで探す
+        const parent = stage.objects.find(obj => obj.id === t.targetObj);
+        if (!parent) return;
+
+        // 2. 親オブジェクトの現在のピクセル座標とサイズ
+        const px = parent.x * canvas.width;
+        const py = parent.y * canvas.height;
+        const pw = parent.w; // 以前決めた通り、w/hはピクセル値
+        const ph = parent.h;
+
+        // 3. 親の範囲内でのターゲットの絶対座標を算出
+        const tx = px + (t.tx - 0.5) * pw;
+        const ty = py + (t.ty - 0.5) * ph;
+
+        let isHit = false;
+
+        if (t.shape === 'rect') {
+            const tw = t.tw * pw;
+            const th = t.th * ph;
+            if (clickX >= tx - tw/2 && clickX <= tx + tw/2 &&
+                clickY >= ty - th/2 && clickY <= ty + th/2) {
+                isHit = true;
+            }
+        } else if (t.shape === 'circle') {
+            const tr = t.tr * pw; // 半径は親の幅を基準にする例
+            const dist = Math.sqrt((clickX - tx)**2 + (clickY - ty)**2);
+            if (dist < tr) isHit = true;
+        }
+
+        if (isHit) t.found = true;
     });
 
-    if (foundCount === stage.targets.length && !isStageCleared) {
+    if (stage.targets.every(t => t.found) && !isStageCleared) {
         showClearEffect();
     }
 }
