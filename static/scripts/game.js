@@ -78,7 +78,7 @@ async function renderStage(index) {
     // デバッグ用の正解エリア可視化
     if (DEBUG) {
         stage.targets.forEach(t => {
-            const parent = stage.objects.find(obj => obj.id === t.targetObj);
+            const parent = stage.objects.find(obj => obj.id === t.obj);
             if (!parent) return;
 
             const px = parent.x * canvas.width;
