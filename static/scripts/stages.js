@@ -19,7 +19,7 @@ const STAGES_DATA = [
             { id: 'text1', type: 'text', content: "宝物庫", x: 0.5, y: 0.2, font: "40px 'Hiragino Mincho ProN', 'MS Mincho', serif", color: "#000" },
             { id: 'text2', type: 'text', content: "🎁", x: 0.5, y: 0.7, font: "100px HiraMinProN-W6", color: "#ccc" }
         ],
-        targets: [{ obj: 'text2', shape: 'circle', tx: 0.5, ty: 0.5, tr: 1.0, found: false }]
+        targets: [{ obj: 'text2', shape: 'circle', tx: 0.5, ty: 0.5, tr: 0.5, found: false }]
     },
     {
         // --- Stage 2 ---
@@ -30,7 +30,7 @@ const STAGES_DATA = [
             { id: 'south', type: 'text', content: "南", x: 0.5, y: 0.8, font: "40px HiraMinProN-W6", color: "#000" },
             { id: 'west', type: 'text', content: "酉", x: 0.2, y: 0.5, font: "40px HiraMinProN-W6", color: "#000" }
         ],
-        targets: [{ obj: 'west', shape: 'circle', tx: 0.5, ty: 0.5, tr: 1.0, found: false }]
+        targets: [{ obj: 'west', shape: 'circle', tx: 0.5, ty: 0.5, tr: 0.5, found: false }]
     }
 ];
 
