@@ -8,7 +8,7 @@ const STAGES_DATA = [
             { id: 'text2', type: 'text', content: "- 画面をクリックしてインクを塗る", x: 0.5, y: 0.75, fontSize: 40, color: "#000" },
             { id: 'text3', type: 'text', content: "- おかしな箇所をインクで隠そう　", x: 0.5, y: 0.8, fontSize: 40, color: "#000" }
         ],
-        targets: [{ obj: 'logo', shape: 'rect', tx: 0.65, ty: 0.4, tw: 0.2, th: 0.55, found: false}]
+        targets: [{ obj: 'logo', shape: 'rect', tx: 0.64, ty: 0.45, tw: 0.2, th: 0.53, found: false}]
     },
     {
         // --- Stage 1 ---

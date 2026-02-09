@@ -158,7 +158,7 @@ async function placeSplatter(x, y, isAuto = false) {
         ctx.drawImage(img, x - drawSize/2, y - drawSize/2, drawSize, drawSize);
 
         if (isStageCleared) {
-            const textSize =drawText("CLEAR", 0.5, 0.5, "#ffffff", 'POP', 200);
+            const textSize =drawText("CLEAR", 0.5, 0.5, "#ffffff", 'POP', 180);
             checkTextReveal("CLEAR", textSize.w, textSize.h, nextStage);
         } else {
             // judge clear
@@ -187,7 +187,7 @@ function checkTextReveal(text, checkWidth, checkHeight, callback) {
         ctx.strokeRect(canvas.width/2 - checkWidth/2, canvas.height/2 - checkHeight/2, checkWidth, checkHeight);
     }
 
-    if (ratio > 0.5 && !isRevealed) {
+    if (ratio > 0.55 && !isRevealed) {
         isRevealed = true;
         startLink.innerHTML = text;
         startLink.style.display = "block";
