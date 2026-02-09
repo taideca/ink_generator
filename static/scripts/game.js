@@ -133,7 +133,7 @@ async function renderStage(index) {
         });
     }
 
-    statusText.innerHTML = `Stage ${index + 1}`;
+    statusText.innerHTML = `Stage ${index}`;
 }
 
 // === click event ===
@@ -158,7 +158,7 @@ async function placeSplatter(x, y, isAuto = false) {
         ctx.drawImage(img, x - drawSize/2, y - drawSize/2, drawSize, drawSize);
 
         if (isStageCleared) {
-            const textSize =drawText("CLEAR", 0.5, 0.5, "#ffffff", 'POP', 180);
+            const textSize =drawText("CLEAR", 0.5, 0.5, "#ffffff", 'POP', 170);
             checkTextReveal("CLEAR", textSize.w, textSize.h, nextStage);
         } else {
             // judge clear
