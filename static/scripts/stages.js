@@ -4,11 +4,11 @@ const STAGES_DATA = [
         hint: "ロゴのあたりを塗ってみて！",
         objects: [
             { id: 'logo', type: 'image', name: 'logo', x: 0.5, y: 0.2, w: 300, h: 200 },
-            { id: 'text1', type: 'text', content: "【遊び方】", x: 0.3, y: 0.7, fontSize: 20, color: "#000" },
-            { id: 'text2', type: 'text', content: "- 画面をクリックしてインクを塗る", x: 0.5, y: 0.75, fontSize: 20, color: "#000" },
-            { id: 'text3', type: 'text', content: "- おかしな箇所をインクで隠そう　", x: 0.5, y: 0.8, fontSize: 20, color: "#000" }
+            { id: 'text1', type: 'text', content: "【遊び方】", x: 0.3, y: 0.7, fontSize: 40, color: "#000" },
+            { id: 'text2', type: 'text', content: "- 画面をクリックしてインクを塗る", x: 0.5, y: 0.75, fontSize: 40, color: "#000" },
+            { id: 'text3', type: 'text', content: "- おかしな箇所をインクで隠そう　", x: 0.5, y: 0.8, fontSize: 40, color: "#000" }
         ],
-        targets: [{ obj: 'logo', shape: 'rect', tx: 0.6, ty: 0.6, tw: 0.2, th: 0.6, found: false}]
+        targets: [{ obj: 'logo', shape: 'rect', tx: 0.65, ty: 0.4, tw: 0.2, th: 0.55, found: false}]
     },
     {
         // --- Stage 1 ---
