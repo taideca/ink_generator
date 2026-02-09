@@ -95,7 +95,7 @@ async function renderStage(index) {
             obj.computedW = obj.w || size.w;
             obj.computedH = obj.h || size.h;
         } else if (obj.type === 'image') {
-            const img = await loadImage(`${IMAGE_DIR}objects/${obj.name}.png`);
+            const img = await loadImage(`${IMAGE_DIR}objects/${obj.content}.png`);
             if (img) {
                 const drawX = (obj.x * canvas.width) - (obj.w / 2);
                 const drawY = (obj.y * canvas.height) - (obj.h / 2);
