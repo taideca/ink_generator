@@ -1,11 +1,12 @@
 // --- DEBUG MODE ---
 const DEBUG = true; // trueにすると正解エリアや判定枠が赤く見えます
 
-// === settings ===
+// === configs ===
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const startLink = document.getElementById('startLink');
 const statusText = document.getElementById('status');
+
 // --- sound effect ---
 const splatSound = new Audio('../static/sounds/splat.mp3'); // loading sound file
 splatSound.volume = 0.5; // volume (0.0 ~ 1.0)
@@ -14,22 +15,43 @@ splatSound.volume = 0.5; // volume (0.0 ~ 1.0)
 const TOTAL_IMAGES = 1000; // number of ink.png
 const IMAGE_DIR = '../static/images/';
 
+// --- fonts ---
+const FONT_FAMILIES = {
+    MAIN: "HiraMinProN-W6, 'MS Mincho', serif",
+    POP: "Arial Black"
+};
+
 // --- state ---
 let currentStageIndex = 0;
 let isStageCleared = false;
 let isRevealed = false;
 let loadedImages = {};
 
-// --- utility ---
-function drawTextCentered(text, color, fontSize = "120px") {
-    ctx.font = `bold ${fontSize} Arial Black`;
+// === utility ===
+// --- text drawer ---
+function drawText(text, xRelative, yRelative, color, fontKey, fontSize) {
+    const family = FONT_FAMILIES[fontKey] || "sans-serif";
+    const scaledSize = fontSize * (canvas.height / 1080);
+
+    ctx.font = `${scaledSize}px ${family}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = color;
-    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+    const x = xRelative * canvas.width;
+    const y = yRelative * canvas.height;
+
+    ctx.fillText(text, x, y);
+
+    // 自動ボックス定義のためのサイズ計測
+    const metrics = ctx.measureText(text);
+    return {
+        w: metrics.width + 20, // 判定用に少しマージンを追加
+        h: scaledSize
+    };
 }
 
-// === image loader ===
+// --- image loader ---
 function loadImage(src) {
     return new Promise((resolve) => {
         if (loadedImages[src]) {
@@ -60,17 +82,26 @@ async function renderStage(index) {
 
     for (const obj of stage.objects) {
         if (obj.type === 'text') {
-            ctx.font = obj.font;
-            ctx.fillStyle = obj.color;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(obj.content, obj.x * canvas.width, obj.y * canvas.height);
+            // drawTextCustom を呼び出して描画し、サイズを取得
+            const size = drawText(
+                obj.content, 
+                obj.x, 
+                obj.y, 
+                obj.color, 
+                'MAIN', 
+                obj.fontSize
+            );
+            // ターゲット判定用に計算されたサイズを保持 (手動設定があれば優先)
+            obj.computedW = obj.w || size.w;
+            obj.computedH = obj.h || size.h;
         } else if (obj.type === 'image') {
             const img = await loadImage(`${IMAGE_DIR}objects/${obj.name}.png`);
             if (img) {
                 const drawX = (obj.x * canvas.width) - (obj.w / 2);
                 const drawY = (obj.y * canvas.height) - (obj.h / 2);
                 ctx.drawImage(img, drawX, drawY, obj.w, obj.h);
+                obj.computedW = obj.w;
+                obj.computedH = obj.h;
             }
         }
     }
@@ -83,16 +114,18 @@ async function renderStage(index) {
 
             const px = parent.x * canvas.width;
             const py = parent.y * canvas.height;
-            const tx = px + (t.tx - 0.5) * parent.w;
-            const ty = py + (t.ty - 0.5) * parent.h;
+            const pw = parent.computedW || 0;
+            const ph = parent.computedH || 0;
+            const tx = px + (t.tx - 0.5) * pw;
+            const ty = py + (t.ty - 0.5) * ph;
 
             ctx.strokeStyle = t.found ? "blue" : "red";
             if (t.shape === 'rect') {
-                const tw = t.tw * parent.w;
-                const th = t.th * parent.h;
+                const tw = t.tw * pw;
+                const th = t.th * ph;
                 ctx.strokeRect(tx - tw/2, ty - th/2, tw, th);
             } else {
-                const tr = t.tr * parent.w;
+                const tr = t.tr * pw;
                 ctx.beginPath();
                 ctx.arc(tx, ty, tr, 0, Math.PI * 2);
                 ctx.stroke();
@@ -100,14 +133,11 @@ async function renderStage(index) {
         });
     }
 
-    statusText.innerHTML = `Stage ${index + 1}: ${stage.hint}`;
+    statusText.innerHTML = `Stage ${index + 1}`;
 }
 
 // === click event ===
 canvas.addEventListener('mousedown', (e) => {
-    // Reveal後もインクを置けるようにするか、止めるかはお好みで
-    // if (isRevealed) return;
-    // ステージクリア後、リンクが出るまではインクを置ける
     if (isStageCleared && startLink.style.display === "block") return;
     placeSplatter(e.clientX, e.clientY);
 });
@@ -118,8 +148,7 @@ async function placeSplatter(x, y, isAuto = false) {
 
     // random select ink
     const randomNum = Math.floor(Math.random() * TOTAL_IMAGES);
-    const formattedNum = String(randomNum).padStart(4, '0');
-    const imgPath = `${IMAGE_DIR}splatters/ink${formattedNum}.png`;
+    const imgPath = `${IMAGE_DIR}splatters/ink${String(randomNum).padStart(4, '0')}.png`;
 
     const img = new Image();
     img.src = imgPath;
@@ -129,8 +158,8 @@ async function placeSplatter(x, y, isAuto = false) {
         ctx.drawImage(img, x - drawSize/2, y - drawSize/2, drawSize, drawSize);
 
         if (isStageCleared) {
-            drawTextCentered("CLEAR", "#ffffff");
-            checkTextReveal("CLEAR", 500, 120, nextStage);
+            const textSize =drawText("CLEAR", 0.5, 0.5, "#ffffff", 'POP', 120);
+            checkTextReveal("CLEAR", textSize.w, textSize.h, nextStage);
         } else {
             // judge clear
             if (!isAuto) checkStageHit(x, y);
@@ -147,7 +176,6 @@ function checkTextReveal(text, checkWidth, checkHeight, callback) {
     );
     const pixels = imageData.data;
     let coloredPixels = 0;
-    // 白(255, 255, 255)以外のピクセル（＝インクが乗った場所）をカウント
     for (let i = 0; i < pixels.length; i += 4) {
         if (pixels[i] < 250) coloredPixels++;
     }
@@ -159,7 +187,6 @@ function checkTextReveal(text, checkWidth, checkHeight, callback) {
         ctx.strokeRect(canvas.width/2 - checkWidth/2, canvas.height/2 - checkHeight/2, checkWidth, checkHeight);
     }
 
-    // 判定感度は 0.5〜0.7 くらいが遊びやすいです
     if (ratio > 0.6 && !isRevealed) {
         isRevealed = true;
         startLink.innerHTML = text;
@@ -182,8 +209,8 @@ function checkStageHit(clickX, clickY) {
         // 2. 親オブジェクトの現在のピクセル座標とサイズ
         const px = parent.x * canvas.width;
         const py = parent.y * canvas.height;
-        const pw = parent.w; // 以前決めた通り、w/hはピクセル値
-        const ph = parent.h;
+        const pw = parent.computedW || 0;
+        const ph = parent.computedH || 0;
 
         // 3. 親の範囲内でのターゲットの絶対座標を算出
         const tx = px + (t.tx - 0.5) * pw;
@@ -199,7 +226,7 @@ function checkStageHit(clickX, clickY) {
                 isHit = true;
             }
         } else if (t.shape === 'circle') {
-            const tr = t.tr * pw; // 半径は親の幅を基準にする例
+            const tr = t.tr * pw;
             const dist = Math.sqrt((clickX - tx)**2 + (clickY - ty)**2);
             if (dist < tr) isHit = true;
         }
@@ -207,23 +234,20 @@ function checkStageHit(clickX, clickY) {
         if (isHit) t.found = true;
     });
 
-    if (stage.targets.every(t => t.found) && !isStageCleared) {
-        showClearEffect();
-    }
+    if (stage.targets.every(t => t.found) && !isStageCleared) showClearEffect();
 }
 
 // --- clear effect ---
 function showClearEffect() {
     // if (isStageCleared) return; // 二重発動防止
     isStageCleared = true;
-    isRevealed = false; // CLEAR文字の出現判定用にリセット
+    isRevealed = false;
     statusText.innerHTML = "<strong>CLEAR!!</strong>";
 
     // "CLEAR" の文字の概ねの位置（中央からのオフセット）に順番にインクを落とす
     const centers = [-240, -160, -80, 0, 80, 160, 240];
     centers.forEach((offsetX, i) => {
-        // 1文字のエリアに対して複数回のインク生成を行う
-        const splattersPerLetter = 2; // ここを3に増やすとさらに派手になります
+        const splattersPerLetter = 2;
         for (let j = 0; j < splattersPerLetter; j++) {
             setTimeout(() => {
                 // 横位置：文字の中心から少し左右に散らす
