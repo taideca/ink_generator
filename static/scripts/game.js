@@ -5,7 +5,7 @@
 const DEBUG = true;
 /* ink image */
 const TOTAL_IMAGES = 1000; // number of ink.png
-const IMAGE_DIR = '../static/images/';
+const IMAGE_DIR    = '../static/images/';
 /* fonts */
 const FONT_FAMILIES = {
     MAIN: "HiraMinProN-W6, 'MS Mincho', serif",
@@ -17,19 +17,20 @@ const FONT_FAMILIES = {
 // ============================================================
 /* state */
 let currentStageIndex = 0;
-let isStageCleared = false;
-let isRevealed = false;
-let loadedImages = {};
+let isStageCleared    = false;
+let isRevealed        = false;
+let isTransitioning   = false;
+let loadedImages      = {};
 /* html objects */
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const startLink = document.getElementById('startLink');
-const statusText = document.getElementById('status');
-const stageOverlay = document.getElementById('stage-overlay');
+const canvas          = document.getElementById('gameCanvas');
+const ctx             = canvas.getContext('2d');
+const startLink       = document.getElementById('startLink');
+const statusText      = document.getElementById('status');
+const stageOverlay    = document.getElementById('stage-overlay');
 const stageNumberText = document.getElementById('stage-number-text');
 /* sound effect */
-const splatSound = new Audio('../static/sounds/splat.mp3'); // loading sound file
-splatSound.volume = 0.5; // volume (0.0 ~ 1.0)
+const splatSound      = new Audio('../static/sounds/splat.mp3'); // loading sound file
+splatSound.volume     = 0.5; // volume (0.0 ~ 1.0)
 
 // ============================================================
 // 3. UTILITIES
@@ -301,6 +302,7 @@ function resetGame() {
     STAGES_DATA[currentStageIndex].targets.forEach(t => t.found = false);
     isRevealed = false;
     isStageCleared = false;
+    isTransitioning = false;
     startLink.style.display = "none";
     renderStage(currentStageIndex);
 }
@@ -309,6 +311,7 @@ function resetGame() {
 // 7. INITIALIZATION & EVENT LISTENER
 // ============================================================
 canvas.addEventListener('mousedown', (e) => {
+    if (isTransitioning) return;
     if (isStageCleared && startLink.style.display === "block") return;
     placeSplatter(e.clientX, e.clientY);
 });

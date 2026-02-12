@@ -72,7 +72,7 @@ canvas {
     align-items: center;
     background: white;
     z-index: 100;
-    opacity: 0;
+    opacity: 1;
     pointer-events: none; /* 下の操作を邪魔しない */
     transition: opacity 0.5s ease;
 }
