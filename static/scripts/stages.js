@@ -3,7 +3,7 @@ const STAGES_DATA = [
         // --- Stage 0: タイトル画面 ---
         objects: [
             { id: 'logo', type: 'image', content: 'logo', x: 0.5, y: 0.2, w: 300, h: 200 },
-            { id: 'text1', type: 'text', content: "【遊び方】", x: 0.3, y: 0.7, fontSize: 32, color: "#000" },
+            { id: 'text1', type: 'text', content: "【遊び方】", x: 0.5, y: 0.7, fontSize: 32, color: "#000" },
             { id: 'text2', type: 'text', content: "- 画面をクリックしてインクを塗る", x: 0.5, y: 0.75, fontSize: 32, color: "#000" },
             { id: 'text3', type: 'text', content: "- おかしな箇所をインクで隠そう　", x: 0.5, y: 0.8, fontSize: 32, color: "#000" }
         ],

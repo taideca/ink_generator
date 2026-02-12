@@ -62,3 +62,39 @@ canvas {
     text-decoration: none;
     color: transparent; /* 文字はキャンバスの白文字で見せるため */
 }
+
+#stage-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none; /* 下の操作を邪魔しない */
+    transition: opacity 0.5s ease;
+}
+
+/* ステージ番号の文字演出 */
+#stage-number-text {
+    font-family: 'Arial Black', sans-serif;
+    font-size: 80px;
+    transform: scale(0.5);
+    filter: blur(10px);
+    transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* バウンス効果 */
+}
+
+/* 演出開始時のクラス */
+#stage-overlay.active {
+    opacity: 1;
+}
+
+#stage-overlay.active #stage-number-text {
+    transform: scale(1);
+    filter: blur(0px);
+}
+
+/* 非表示用 */
+.hidden { display: none !important; }

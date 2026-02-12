@@ -1,34 +1,40 @@
-// --- DEBUG MODE ---
-const DEBUG = true; // trueにすると正解エリアや判定枠が赤く見えます
-
-// === configs ===
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const startLink = document.getElementById('startLink');
-const statusText = document.getElementById('status');
-
-// --- sound effect ---
-const splatSound = new Audio('../static/sounds/splat.mp3'); // loading sound file
-splatSound.volume = 0.5; // volume (0.0 ~ 1.0)
-
-// --- ink image ---
+// ============================================================
+// 1. CONSTANTS
+// ============================================================
+/* debug mode */
+const DEBUG = true;
+/* ink image */
 const TOTAL_IMAGES = 1000; // number of ink.png
 const IMAGE_DIR = '../static/images/';
-
-// --- fonts ---
+/* fonts */
 const FONT_FAMILIES = {
     MAIN: "HiraMinProN-W6, 'MS Mincho', serif",
     POP: "Arial Black"
 };
 
-// --- state ---
+// ============================================================
+// 2. STATE
+// ============================================================
+/* state */
 let currentStageIndex = 0;
 let isStageCleared = false;
 let isRevealed = false;
 let loadedImages = {};
+/* html objects */
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const startLink = document.getElementById('startLink');
+const statusText = document.getElementById('status');
+const stageOverlay = document.getElementById('stage-overlay');
+const stageNumberText = document.getElementById('stage-number-text');
+/* sound effect */
+const splatSound = new Audio('../static/sounds/splat.mp3'); // loading sound file
+splatSound.volume = 0.5; // volume (0.0 ~ 1.0)
 
-// === utility ===
-// --- text drawer ---
+// ============================================================
+// 3. UTILITIES
+// ============================================================
+/* text drawer */
 function drawText(text, xRelative, yRelative, color, fontKey, fontSize) {
     const family = FONT_FAMILIES[fontKey] || "sans-serif";
     const scaledSize = fontSize * (canvas.height / 1080);
@@ -43,15 +49,15 @@ function drawText(text, xRelative, yRelative, color, fontKey, fontSize) {
 
     ctx.fillText(text, x, y);
 
-    // 自動ボックス定義のためのサイズ計測
+    // adjusting textbox size
     const metrics = ctx.measureText(text);
     return {
-        w: metrics.width + 20, // 判定用に少しマージンを追加
+        w: metrics.width + 20,
         h: scaledSize
     };
 }
 
-// --- image loader ---
+/* image loader */
 function loadImage(src) {
     return new Promise((resolve) => {
         if (loadedImages[src]) {
@@ -68,13 +74,9 @@ function loadImage(src) {
     });
 }
 
-async function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    await renderStage(currentStageIndex);
-}
-
-// === game screen ===
+// ============================================================
+// 4. RENDERING
+// ============================================================
 async function renderStage(index) {
     const stage = STAGES_DATA[index];
     ctx.fillStyle = "#ffffff";
@@ -82,7 +84,6 @@ async function renderStage(index) {
 
     for (const obj of stage.objects) {
         if (obj.type === 'text') {
-            // drawTextCustom を呼び出して描画し、サイズを取得
             const size = drawText(
                 obj.content, 
                 obj.x, 
@@ -91,7 +92,6 @@ async function renderStage(index) {
                 'MAIN', 
                 obj.fontSize
             );
-            // ターゲット判定用に計算されたサイズを保持 (手動設定があれば優先)
             obj.computedW = obj.w || size.w;
             obj.computedH = obj.h || size.h;
         } else if (obj.type === 'image') {
@@ -105,42 +105,37 @@ async function renderStage(index) {
             }
         }
     }
-
-    // デバッグ用の正解エリア可視化
-    if (DEBUG) {
-        stage.targets.forEach(t => {
-            const parent = stage.objects.find(obj => obj.id === t.obj);
-            if (!parent) return;
-
-            const px = parent.x * canvas.width;
-            const py = parent.y * canvas.height;
-            const pw = parent.computedW || 0;
-            const ph = parent.computedH || 0;
-            const tx = px + (t.tx - 0.5) * pw;
-            const ty = py + (t.ty - 0.5) * ph;
-
-            ctx.strokeStyle = t.found ? "blue" : "red";
-            if (t.shape === 'rect') {
-                const tw = t.tw * pw;
-                const th = t.th * ph;
-                ctx.strokeRect(tx - tw/2, ty - th/2, tw, th);
-            } else {
-                const tr = t.tr * pw;
-                ctx.beginPath();
-                ctx.arc(tx, ty, tr, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-        });
-    }
-
+    if (DEBUG) renderDebug(stage);
     statusText.innerHTML = `Stage ${index}`;
 }
 
-// === click event ===
-canvas.addEventListener('mousedown', (e) => {
-    if (isStageCleared && startLink.style.display === "block") return;
-    placeSplatter(e.clientX, e.clientY);
-});
+function renderDebug(stage) {
+    stage.targets.forEach(t => {
+        const parent = stage.objects.find(obj => obj.id === t.obj);
+        if (!parent) return;
+
+        const px = parent.x * canvas.width;
+        const py = parent.y * canvas.height;
+        const tx = px + (t.tx - 0.5) * (parent.computedW || 0);
+        const ty = py + (t.ty - 0.5) * (parent.computedH || 0);
+
+        ctx.strokeStyle = t.found ? "blue" : "red";
+        if (t.shape === 'rect') {
+            const tw = t.tw * parent.computedW;
+            const th = t.th * parent.computedH;
+            ctx.strokeRect(tx - tw/2, ty - th/2, tw, th);
+        } else {
+            const tr = t.tr * parent.computedW;
+            ctx.beginPath();
+            ctx.arc(tx, ty, tr, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    });
+}
+
+// ============================================================
+// 5. GAME LOGIC
+// ============================================================
 
 async function placeSplatter(x, y, isAuto = false) {
     // playing click SE
@@ -158,7 +153,7 @@ async function placeSplatter(x, y, isAuto = false) {
         ctx.drawImage(img, x - drawSize/2, y - drawSize/2, drawSize, drawSize);
 
         if (isStageCleared) {
-            const textSize =drawText("CLEAR", 0.5, 0.5, "#ffffff", 'POP', 170);
+            const textSize = drawText("CLEAR", 0.5, 0.5, "#ffffff", 'POP', 170);
             checkTextReveal("CLEAR", textSize.w, textSize.h, nextStage);
         } else {
             // judge clear
@@ -167,38 +162,9 @@ async function placeSplatter(x, y, isAuto = false) {
     };
 }
 
-// --- judge appearing text ---
-function checkTextReveal(text, checkWidth, checkHeight, callback) {
-    const imageData = ctx.getImageData(
-        canvas.width / 2 - checkWidth / 2, 
-        canvas.height / 2 - checkHeight / 2, 
-        checkWidth, checkHeight
-    );
-    const pixels = imageData.data;
-    let coloredPixels = 0;
-    for (let i = 0; i < pixels.length; i += 4) {
-        if (pixels[i] < 250) coloredPixels++;
-    }
-
-    const ratio = coloredPixels / (checkWidth * checkHeight);
-
-    if (DEBUG) {
-        ctx.strokeStyle = "rgba(0, 255, 115, 0.3)";
-        ctx.strokeRect(canvas.width/2 - checkWidth/2, canvas.height/2 - checkHeight/2, checkWidth, checkHeight);
-    }
-
-    if (ratio > 0.55 && !isRevealed) {
-        isRevealed = true;
-        startLink.innerHTML = text;
-        startLink.style.display = "block";
-        startLink.onclick = callback;
-    }
-}
-
-// --- judge hit on the playing screen ---
+/* judge hit on the playing screen */
 function checkStageHit(clickX, clickY) {
     const stage = STAGES_DATA[currentStageIndex];
-
     stage.targets.forEach(t => {
         if (t.found) return;
 
@@ -237,52 +203,120 @@ function checkStageHit(clickX, clickY) {
     if (stage.targets.every(t => t.found) && !isStageCleared) showClearEffect();
 }
 
-// --- clear effect ---
+/* clear effect */
 function showClearEffect() {
-    // if (isStageCleared) return; // 二重発動防止
     isStageCleared = true;
     isRevealed = false;
-    statusText.innerHTML = "<strong>CLEAR!!</strong>";
 
-    // "CLEAR" の文字の概ねの位置（中央からのオフセット）に順番にインクを落とす
     const centers = [-240, -160, -80, 0, 80, 160, 240];
     centers.forEach((offsetX, i) => {
-        const splattersPerLetter = 2;
-        for (let j = 0; j < splattersPerLetter; j++) {
+        for (let j = 0; j < 2; j++) {
             setTimeout(() => {
                 // 横位置：文字の中心から少し左右に散らす
                 const rx = canvas.width / 2 + offsetX + (Math.random() - 0.5) * 60;
                 // 縦位置：中央（canvas.height/2）から上下に少し散らす
                 const ry = canvas.height / 2 + (Math.random() - 0.5) * 70;
                 placeSplatter(rx, ry, true);
-            }, i * 50 + (j * 50/splattersPerLetter)); // 文字ごとの間隔(150) + 1文字内の時間差(50)
+            }, i * 50 + (j * 25)); // 文字ごとの間隔(150) + 1文字内の時間差(50)
         }
     });
 }
 
-// --- transitioning stages ---
+function checkTextReveal(text, checkWidth, checkHeight, callback) {
+    const imageData = ctx.getImageData(
+        canvas.width / 2 - checkWidth / 2, 
+        canvas.height / 2 - checkHeight / 2, 
+        checkWidth, checkHeight
+    );
+    const pixels = imageData.data;
+    let coloredPixels = 0;
+    for (let i = 0; i < pixels.length; i += 4) {
+        if (pixels[i] < 250) coloredPixels++;
+    }
+
+    const ratio = coloredPixels / (checkWidth * checkHeight);
+
+    if (DEBUG) {
+        ctx.strokeStyle = "rgba(0, 255, 115, 0.3)";
+        ctx.strokeRect(canvas.width/2 - checkWidth/2, canvas.height/2 - checkHeight/2, checkWidth, checkHeight);
+    }
+
+    if (ratio > 0.55 && !isRevealed) {
+        isRevealed = true;
+        startLink.innerHTML = text;
+        startLink.style.display = "block";
+        startLink.onclick = callback;
+    }
+}
+
+// ============================================================
+// 6. FLOW CONTROL
+// ============================================================
+async function playStageTransition(stageNumber) {
+    // 1. オーバーレイを表示状態にする
+    stageOverlay.classList.remove('hidden');
+    stageNumberText.innerText = `STAGE ${stageNumber}`;
+
+    // DOMの描画を待ってからアニメーションクラスを付与
+    setTimeout(() => stageOverlay.classList.add('active'), 10);
+
+    // 2. 演出の裏で次のステージを準備
+    await renderStage(currentStageIndex);
+
+    // 3. 一定時間後に演出を解除
+    setTimeout(() => {
+        stageOverlay.classList.remove('active');
+        // フェードアウト完了後に完全に隠す（CSSのtransition時間に合わせる）
+        setTimeout(() => stageOverlay.classList.add('hidden'), 500);
+    }, 1800);
+}
+
+/* 全ステージクリア画面の描画 */
+async function renderAllClearScreen() {
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // メッセージの描画
+    drawText("🎉 ALL CLEAR! 🎉", 0.5, 0.4, "#FFD700", 'POP', 100);
+    drawText("遊んでくれてありがとう！", 0.5, 0.6, "#333", 'MAIN', 30);
+
+    statusText.innerHTML = "<strong>Perfect! 全てのステージをクリアしました！</strong>";
+}
+
 function nextStage() {
     currentStageIndex++;
     if (currentStageIndex < STAGES_DATA.length) {
         isStageCleared = false;
         isRevealed = false;
         startLink.style.display = "none";
-        renderStage(currentStageIndex);
+        playStageTransition(currentStageIndex);
     } else {
-        statusText.innerHTML = "All Clear!";
+        isStageCleared = true;
         startLink.style.display = "none";
-        // 全クリア後の演出が必要ならここに追加
+        renderAllClearScreen();
     }
 }
 
-// --- reset ---
 function resetGame() {
     STAGES_DATA[currentStageIndex].targets.forEach(t => t.found = false);
     isRevealed = false;
     isStageCleared = false;
     startLink.style.display = "none";
-    drawStartScreen();
+    renderStage(currentStageIndex);
 }
 
-window.addEventListener('resize', resize);
-resize();   // 初回起動
+// ============================================================
+// 7. INITIALIZATION & EVENT LISTENER
+// ============================================================
+canvas.addEventListener('mousedown', (e) => {
+    if (isStageCleared && startLink.style.display === "block") return;
+    placeSplatter(e.clientX, e.clientY);
+});
+
+window.addEventListener('resize', async () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    await renderStage(currentStageIndex);
+});
+
+window.dispatchEvent(new Event('resize'));
