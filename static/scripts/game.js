@@ -254,22 +254,27 @@ function checkTextReveal(text, checkWidth, checkHeight, callback) {
 // 6. FLOW CONTROL
 // ============================================================
 async function playStageTransition(stageNumber) {
+    isTransitioning = true;
     // 1. オーバーレイを表示状態にする
+    stageOverlay.classList.remove('none');
     stageOverlay.classList.remove('hidden');
     stageNumberText.innerText = `STAGE ${stageNumber}`;
 
     // DOMの描画を待ってからアニメーションクラスを付与
-    setTimeout(() => stageOverlay.classList.add('active'), 10);
+    // setTimeout(() => stageOverlay.classList.add('active'), 10);
 
     // 2. 演出の裏で次のステージを準備
     await renderStage(currentStageIndex);
 
-    // 3. 一定時間後に演出を解除
+    // 3. 1秒待機してからフェードアウト開始
     setTimeout(() => {
-        stageOverlay.classList.remove('active');
-        // フェードアウト完了後に完全に隠す（CSSのtransition時間に合わせる）
-        setTimeout(() => stageOverlay.classList.add('hidden'), 500);
-    }, 1800);
+        stageOverlay.classList.add('hidden');
+        // 4. フェード完了後に操作解禁
+        setTimeout(() => {
+            stageOverlay.classList.add('none');
+            isTransitioning = false; // 操作解禁
+        }, 800); // CSSのtransition秒数と合わせる
+    }, 1000);
 }
 
 /* 全ステージクリア画面の描画 */

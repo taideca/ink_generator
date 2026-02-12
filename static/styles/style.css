@@ -72,7 +72,7 @@ canvas {
     align-items: center;
     background: white;
     z-index: 100;
-    opacity: 1;
+    opacity: 0;
     pointer-events: none; /* 下の操作を邪魔しない */
     transition: opacity 0.5s ease;
 }
@@ -86,15 +86,14 @@ canvas {
     transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* バウンス効果 */
 }
 
-/* 演出開始時のクラス */
-#stage-overlay.active {
-    opacity: 1;
+/* 非表示状態（この時だけ transition が効いてフェードアウトする） */
+#stage-overlay.hidden {
+    display: flex !important; /* hiddenでもフェード中は表示を維持 */
+    opacity: 0;
+    pointer-events: none;
 }
 
-#stage-overlay.active #stage-number-text {
-    transform: scale(1);
-    filter: blur(0px);
+/* 完全に消すためのクラス（JSで最後に付与） */
+#stage-overlay.none {
+    display: none !important;
 }
-
-/* 非表示用 */
-.hidden { display: none !important; }
